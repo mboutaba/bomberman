@@ -68,3 +68,25 @@ function gameTick() {
         mainGameState = null;
     }
 }
+
+// Game count down:
+function startGameCountdown() {
+  if (lobbyState.status === 'countdown') return;
+  clearTimeout(lobbyState.lobbyTimer);
+  lobbyState.lobbyTimer = null;
+  lobbyState.status = 'countdown';
+  let remaining = COUNTDOWN_TIME;
+  lobbyState.countdownTimer = {
+    interval: setInterval(() => {
+      remaining--;
+      broadcast({ type: 'UPDATE_COUNTDOWN', payload: remaining });
+      if (remaining <= 0) {
+        clearInterval(lobbyState.countdownTimer.interval);
+        startGame();
+      }
+    }, 1000),
+    remaining: remaining
+  };
+  broadcastLobbyState();
+  console.log('Starting 10-second countdown...');
+}
