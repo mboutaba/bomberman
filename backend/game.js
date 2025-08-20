@@ -143,3 +143,63 @@ function isColliding(x, y, size, map) {
     return false;
 }
 
+//  Handle player movements:
+function handlePlayerMove(player, direction, gameState) {
+    if (!player.isAlive) return;
+    const { speed, size } = player;
+    const { map } = gameState;
+
+    let newX = player.x;
+    let newY = player.y;
+
+    if (direction.up) newY -= speed;
+    if (direction.down) newY += speed;
+    if (direction.left) newX -= speed;
+    if (direction.right) newX += speed;
+
+    const tempPlayer = { ...player, x: newX, y: player.y };
+    if (!isColliding(tempPlayer.x, tempPlayer.y, size, map)) {
+        player.x = newX;
+    }
+
+    const tempPlayer2 = { ...player, y: newY };
+    if (!isColliding(tempPlayer2.x, tempPlayer2.y, size, map)) {
+        player.y = newY;
+    }
+
+    if (player.x < 0) player.x = 0;
+    if (player.x + size > MAP_WIDTH_PX) player.x = MAP_WIDTH_PX - size;
+    if (player.y < 0) player.y = 0;
+    if (player.y + size > MAP_HEIGHT_PX) player.y = MAP_HEIGHT_PX - size;
+
+    // Check for power-up collection
+    const playerCellX = Math.floor((player.x + size / 2) / CELL_SIZE);
+    const playerCellY = Math.floor((player.y + size / 2) / CELL_SIZE);
+    const powerUpIndex = gameState.powerUps.findIndex(p => p.x === playerCellX && p.y === playerCellY);
+
+    if (powerUpIndex !== -1) {
+        const powerUp = gameState.powerUps[powerUpIndex];
+        switch (powerUp.type) {
+            case 'bombs':
+                player.bombs++;
+                break;
+            case 'flame':
+                player.flame++;
+                break;
+            case 'speed':
+                player.speed += 0.5;
+                break;
+        }
+        // Remove the power-up from the array
+        gameState.powerUps.splice(powerUpIndex, 1);
+    }
+}
+
+// module export:
+module.exports = {
+  createInitialGameState,
+  handlePlayerMove,
+  handlePlaceBomb,
+  handleExplosions,
+  TILE,
+};
