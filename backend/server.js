@@ -90,3 +90,64 @@ function startGameCountdown() {
   broadcastLobbyState();
   console.log('Starting 10-second countdown...');
 }
+
+
+// --- WebSocket Server Logic ---
+wss.on('connection', (ws) => {
+  console.log('Client connected');
+
+  ws.on('message', (rawMessage) => {
+    const data = JSON.parse(rawMessage);
+    const player = lobbyState.players.find(p => p.ws === ws);
+
+    switch (data.type) {
+      case 'JOIN_GAME':
+        if (lobbyState.players.length < 2 && lobbyState.status === 'waiting') {
+          const newPlayer = { id: lobbyState.players.length + 1, ws: ws, nickname: data.payload.nickname };
+          lobbyState.players.push(newPlayer);
+          ws.playerId = newPlayer.id;
+          broadcastLobbyState();
+          if (lobbyState.players.length === 4) startGameCountdown();
+          else if (lobbyState.players.length >= 2 && !lobbyState.lobbyTimer) {
+            lobbyState.lobbyTimer = setTimeout(startGameCountdown, LOBBY_WAIT_TIME);
+          }
+        }
+        break;
+      case 'SEND_CHAT_MESSAGE':
+        if (player) broadcast({ type: 'NEW_CHAT_MESSAGE', payload: { nickname: player.nickname, message: data.payload.message } });
+        break;
+      case 'MOVE_PLAYER':
+        if (mainGameState && player) {
+            const gamePlayer = mainGameState.players.find(p => p.id === player.id);
+            if (gamePlayer) handlePlayerMove(gamePlayer, data.payload, mainGameState);
+        }
+        break;
+      case 'PLACE_BOMB':
+        if (mainGameState && player) handlePlaceBomb(player, mainGameState);
+        break;
+    }
+  });
+
+  ws.on('close', () => {
+    const player = lobbyState.players.find(p => p.ws === ws);
+    if (player) {
+        console.log(`Player ${player.nickname} disconnected`);
+        lobbyState.players = lobbyState.players.filter(p => p.id !== player.id);
+        if (lobbyState.status !== 'inprogress') {
+            if (lobbyState.players.length < 2) {
+                clearTimeout(lobbyState.lobbyTimer);
+                lobbyState.lobbyTimer = null;
+            }
+            if (lobbyState.status === 'countdown') {
+                clearInterval(lobbyState.countdownTimer.interval);
+                lobbyState.status = 'waiting';
+            }
+            broadcastLobbyState();
+        } else {
+            mainGameState.players = mainGameState.players.filter(p => p.id !== player.id);
+        }
+    }
+  });
+
+  ws.on('error', (error) => console.error('WebSocket error:', error));
+});
