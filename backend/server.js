@@ -26,3 +26,12 @@ function broadcast(data) {
     if (client.readyState === WebSocket.OPEN) client.send(message);
   });
 }
+ // start game!
+ function startGame() {
+  console.log('Game starting!');
+  lobbyState.status = 'inprogress';
+  mainGameState = createInitialGameState(lobbyState.players);
+  gameLoopInterval = setInterval(gameTick, GAME_TICK_RATE);
+  broadcast({ type: 'START_GAME', payload: mainGameState });
+}
+
