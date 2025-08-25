@@ -103,6 +103,52 @@ function reducer(state = initialState, action) {
       return state;
   }
 }
+// --- High-Performance Board Renderer ---
+const boardManager = {
+    CELL_SIZE: 50,
+    dynamicElementContainer: null,
+    playerPool: new Map(),
+    bombPool: new Map(),
+    explosionPool: new Map(),
+    powerUpPool: new Map(),
+    activeElements: new Set(),
+
+    createBoard(map) {
+        const wallAndBlockCells = [];
+        map.forEach((row, y) => {
+            row.forEach((tile, x) => {
+                if (tile === TILE.WALL || tile === TILE.BLOCK) {
+                    const tileClass = tile === TILE.WALL ? 'cell wall' : 'cell block';
+                    wallAndBlockCells.push(FacileJS.createElement('div', {
+                        class: tileClass,
+                        style: `grid-column: ${x + 1}; grid-row: ${y + 1};`
+                    }));
+                }
+            });
+        });
+
+        const dynamicContainerVNode = FacileJS.createElement('div', {
+            class: 'dynamic-container',
+            ref: (el) => { if (el) this.dynamicElementContainer = el; }
+        });
+
+        return FacileJS.createElement('div', {
+            class: 'board',
+            style: `grid-template-columns: repeat(${map[0].length}, ${this.CELL_SIZE}px); grid-template-rows: repeat(${map.length}, ${this.CELL_SIZE}px);`
+        }, ...wallAndBlockCells, dynamicContainerVNode);
+    },
+
+    // ... updatePool, update, reset methods
+};
+
+// --- Input Handling ---
+const keyboardState = {};
+const keyMap = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
+
+const handleKeyDown = (e) => { const direction = keyMap[e.code]; if (direction && !keyboardState[e.code]) { keyboardState[e.code] = true; ws.send(JSON.stringify({ type: 'START_MOVING', payload: direction })); } };
+const handleKeyUp = (e) => { const direction = keyMap[e.code]; if (direction) { keyboardState[e.code] = false; ws.send(JSON.stringify({ type: 'STOP_MOVING', payload: direction })); } };
+const handleKeyPress = (e) => { if (e.code === 'Space' && store.getState().screen === 'game') { e.preventDefault(); ws.send(JSON.stringify({ type: 'PLACE_BOMB' })); } };
+
 
 const store = FacileJS.createStore(reducer);
 const router = createRouter(store);
