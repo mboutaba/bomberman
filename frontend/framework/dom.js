@@ -1,20 +1,15 @@
+import { applyEventHandlers } from './event.js';
 
-// Create a virtual DOM structure: => represent elements as objects {type, props, children}
+
 export const createElement = (tag, props, ...children) => {
-return {
+  return {
     tag,
-    props: props,
-    children: children.flat()
-}
-}
+    props: props || {},
+    children: children.flat(),
+  };
+};
 
-// const buttonElement = createElement(
-//   'button',
-//   { id: 'my-btn', className: 'btn-primary', onClick: () => alert('Clicked!') },
-//   'Click me'
-// );
 
-// implement the renderer function: => converts the vDOM object into a real DOM node:
 export const render = (vnode) => {
   if (vnode === null || vnode === undefined || typeof vnode === 'boolean') {
     return document.createTextNode('');
@@ -53,64 +48,6 @@ export const render = (vnode) => {
   return element;
 };
 
-// Implement diff function: => compares old  and new vDOM trees, updates only the changes nodes in the real DOM:
-// patch = primary diffing function.
-
-// Handles text nodes, element type changes, props changes.
-
-function patch(parentEl, oldVNode, newVNode, index = 0) {
-    const el = parentEl.childNodes[index];
-
-    if (!el) {
-        parentEl.appendChild(render(newVNode));
-        return;
-    }
-
-    const oldV = (oldVNode == null || typeof oldVNode === 'boolean') ? '' : oldVNode;
-    const newV = (newVNode == null || typeof newVNode === 'boolean') ? '' : newVNode;
-
-    const oldIsPrimitive = typeof oldV !== 'object';
-    const newIsPrimitive = typeof newV !== 'object';
-
-    if (oldIsPrimitive || newIsPrimitive) {
-        if (String(oldV) !== String(newV)) {
-            el.replaceWith(render(newV));
-        }
-        return;
-    }
-
-    if (oldV.tag !== newV.tag) {
-        el.replaceWith(render(newV));
-        return;
-    }
-
-    patchProps(el, oldV.props, newV.props);
-    patchChildren(el, oldV.children, newV.children);
-}
-
-// patchChildren = recursively diffs child arrays.
-function patchChildren(parentEl, oldChildren, newChildren) {
-    const oldLen = oldChildren.length;
-    const newLen = newChildren.length;
-    const commonLen = Math.min(oldLen, newLen);
-
-    for (let i = 0; i < commonLen; i++) {
-        patch(parentEl, oldChildren[i], newChildren[i], i);
-    }
-
-    if (oldLen > newLen) {
-        for (let i = oldLen - 1; i >= newLen; i--) {
-            parentEl.childNodes[i].remove();
-        }
-    }
-    else if (newLen > oldLen) {
-        for (let i = oldLen; i < newLen; i++) {
-            parentEl.appendChild(render(newChildren[i]));
-        }
-    }
-}
-
-// patchProps = diffs and updates only changed attributes/properties.
 
 export const mount = (node, target) => {
   target.innerHTML = '';
@@ -151,6 +88,57 @@ function patchProps(el, oldProps, newProps) {
       }
     }
   }
+}
+
+function patch(parentEl, oldVNode, newVNode, index = 0) {
+    const el = parentEl.childNodes[index];
+
+    if (!el) {
+        parentEl.appendChild(render(newVNode));
+        return;
+    }
+
+    const oldV = (oldVNode == null || typeof oldVNode === 'boolean') ? '' : oldVNode;
+    const newV = (newVNode == null || typeof newVNode === 'boolean') ? '' : newVNode;
+
+    const oldIsPrimitive = typeof oldV !== 'object';
+    const newIsPrimitive = typeof newV !== 'object';
+
+    if (oldIsPrimitive || newIsPrimitive) {
+        if (String(oldV) !== String(newV)) {
+            el.replaceWith(render(newV));
+        }
+        return;
+    }
+
+    if (oldV.tag !== newV.tag) {
+        el.replaceWith(render(newV));
+        return;
+    }
+
+    patchProps(el, oldV.props, newV.props);
+    patchChildren(el, oldV.children, newV.children);
+}
+
+function patchChildren(parentEl, oldChildren, newChildren) {
+    const oldLen = oldChildren.length;
+    const newLen = newChildren.length;
+    const commonLen = Math.min(oldLen, newLen);
+
+    for (let i = 0; i < commonLen; i++) {
+        patch(parentEl, oldChildren[i], newChildren[i], i);
+    }
+
+    if (oldLen > newLen) {
+        for (let i = oldLen - 1; i >= newLen; i--) {
+            parentEl.childNodes[i].remove();
+        }
+    }
+    else if (newLen > oldLen) {
+        for (let i = oldLen; i < newLen; i++) {
+            parentEl.appendChild(render(newChildren[i]));
+        }
+    }
 }
 
 export const createApp = (component, target) => {
