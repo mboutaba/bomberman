@@ -259,4 +259,65 @@ body {
         filter: drop-shadow(0 0 5px #0ff) drop-shadow(0 0 10px #0ff);
     }
 }
+/* --- Player Status UI (Subtle) --- */
+
+.player-status-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: rgba(10, 10, 10, 0.7); /* Dark, transparent */
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 255, 255, 0.4); /* Thin cyan border */
+    min-width: 200px;
+}
+
+.player-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: transparent; /* Simpler background */
+    transition: all 0.3s ease;
+}
+
+.player-status.dead {
+    opacity: 0.4;
+    filter: grayscale(1);
+}
+
+.player-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid; /* Keep border for color */
+}
+
+.player-1 .player-icon { border-color: #00ff00; }
+.player-2 .player-icon { border-color: #ff00ff; }
+.player-3 .player-icon { border-color: #ffff00; }
+.player-4 .player-icon { border-color: #ff4500; }
+
+.nickname {
+    font-weight: bold;
+    color: #fff;
+    flex-grow: 1;
+    text-shadow: none; /* Removed shadow for simplicity */
+}
+
+.lives-container {
+    display: flex;
+    gap: 4px;
+}
+
+.life-icon {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px; /* Square hearts */
+    background-color: #ff4d4d; /* Red for lives */
+    box-shadow: none; /* Removed shadow */
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
 
