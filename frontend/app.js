@@ -152,3 +152,29 @@ const handleKeyPress = (e) => { if (e.code === 'Space' && store.getState().scree
 
 const store = FacileJS.createStore(reducer);
 const router = createRouter(store);
+// --- Components ---
+function App() { /* ... */ }
+function ChatComponent() { /* ... */ }
+function NicknameScreen() { /* ... */ }
+function LobbyScreen() { /* ... */ }
+function BoardRendererComponent({ map }) { /* ... */ }
+function PlayerStatus({ players }) { /* ... */ }
+function GameOverScreen() { /* ... */ }
+function GameScreen() { /* ... */ }
+
+// --- App Initialization ---
+const rootElement = document.getElementById('root');
+const update = FacileJS.createApp(App, rootElement);
+
+store.subscribe(() => {
+    const state = store.getState();
+    update();
+    if (state.screen === 'game' && state.gameState.map.length > 0) {
+        boardManager.update(state.gameState);
+    } else {
+        boardManager.reset();
+    }
+});
+
+requestAnimationFrame(gameLoop);
+
