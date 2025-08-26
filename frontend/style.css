@@ -187,4 +187,76 @@ body {
     border-radius: 50%;
     animation: fire-explosion 0.6s ease-out forwards;
 }
+/* Chat */
+.chat-container {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(10, 10, 10, 0.7); /* Dark, transparent */
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 0, 255, 0.4); /* Use magenta to differentiate from board */
+    min-width: 200px; /* Match player status */
+}
+
+.messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 0, 255, 0.2);
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: rgba(0,0,0,0.4);
+    min-height: 250px; /* Adjusted height */
+    border-radius: 4px;
+    color: #eee;
+}
+
+.message {
+    margin-bottom: 5px;
+}
+
+.chat-container input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 0, 255, 0.4);
+    background-color: rgba(0,0,0,0.5);
+    color: #fff;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.chat-container input:focus {
+    border-color: rgba(255, 0, 255, 0.8);
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.4);
+}
+
+/* --- Animations --- */
+
+@keyframes fire-explosion {
+    0% {
+        transform: scale(0.2);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+@keyframes bomb-pulse-neon {
+    0% {
+        filter: drop-shadow(0 0 5px #0ff) drop-shadow(0 0 10px #0ff);
+    }
+    50% {
+        filter: drop-shadow(0 0 10px #0ff) drop-shadow(0 0 20px #0ff);
+    }
+    100% {
+        filter: drop-shadow(0 0 5px #0ff) drop-shadow(0 0 10px #0ff);
+    }
+}
 
