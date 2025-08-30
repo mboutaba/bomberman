@@ -1,5 +1,5 @@
 // Game logic and state management
-import { useState } from './state.js';
+import { useState } from './mini-framework/state.js';
 
 let socket = null;
 let gameUpdateCallback = null;

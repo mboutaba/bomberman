@@ -38,6 +38,20 @@ const server = http.createServer((req, res) => {
     });
   }
 
+    // Serve styles.css from the frontend directory
+  else if (req.url === '/styles.css') {
+    const filePath = path.join(__dirname, '..', 'frontend', 'styles.css');
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+      if (err) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('CSS File Not Found');
+      } else {
+        res.writeHead(200, { 'Content-Type': 'text/css' });
+        res.end(data);
+      }
+    });
+  }
+
   // Return 404 for any other requests
   else {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
@@ -70,8 +84,8 @@ let gameState = {
 let playerCount = 0;
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 2;
-const WAITING_TIME = 2000; // 20 seconds
-const COUNTDOWN_TIME = 1000; // 10 seconds
+const WAITING_TIME = 20000; // 20 seconds
+const COUNTDOWN_TIME = 10000; // 10 seconds
 
 // Initialize map (15x13 grid)
 function initializeMap() {

@@ -1,6 +1,6 @@
 // Main application entry point
-import { renderApp } from './render.js';
-import { initRouter, useRoute } from './router.js';
+import { renderApp } from './mini-framework/render.js';
+import { initRouter, useRoute } from './mini-framework/router.js';
 import { initGame, joinGame, getState, onGameUpdate, initInput, sendChatMessage, handleKeyDown, handleKeyUp } from './game.js';
 
 let animationId;
@@ -47,16 +47,50 @@ function NicknameScreen() {
 function WaitingScreen() {
   const state = getState();
   
-  return h('div', { class: 'screen' },
-    h('h1', {}, 'Waiting for Players'),
-    h('p', {}, `Players: ${state.playerCount}/4`),
-    state.countdown > 0 ? 
-      h('div', { class: 'countdown' }, state.countdown) :
-      h('p', {}, 'Waiting for more players...'),
-    h('div', { class: 'player-list' },
-      Object.values(state.players).map((player, index) =>
-        h('div', { key: player.id, class: 'player-info' },
-          h('span', { class: `player-${index}` }, '●'), ' ', player.nickname
+  function handleChatSubmit(e) {
+    e.preventDefault();
+    const message = e.target.message.value.trim();
+    if (message) {
+      sendChatMessage(message);
+      e.target.message.value = '';
+    }
+  }
+  
+  return h('div', { class: 'screen waiting-screen' },
+    h('div', { class: 'waiting-info' },
+      h('h1', {}, 'Waiting for Players'),
+      h('p', {}, `Players: ${state.playerCount}/4`),
+      state.countdown > 0 ? 
+        h('div', { class: 'countdown' }, state.countdown) :
+        h('p', {}, 'Waiting for more players...'),
+      h('div', { class: 'player-list' },
+        Object.values(state.players).map((player, index) =>
+          h('div', { key: player.id, class: 'player-info' },
+            h('span', { class: `player-${index}` }, '●'), ' ', player.nickname
+          )
+        )
+      )
+    ),
+    h('div', { class: 'chat-container' },
+      h('div', { class: 'chat' },
+        h('h4', {}, 'Chat'),
+        h('div', { class: 'chat-messages' },
+          ...state.chatMessages.slice(-20).map((msg, index) =>
+            h('div', { key: index, class: 'message' },
+              h('strong', {}, msg.nickname + ': '),
+              msg.message
+            )
+          )
+        ),
+        h('form', { class: 'chat-input', onsubmit: handleChatSubmit },
+          h('input', {
+            type: 'text',
+            name: 'message',
+            placeholder: 'Type message...',
+            maxlength: '100'
+          }),
+          h('button', { type: 'submit', class: 'btn chat-btn' }, 'Send')
+
         )
       )
     )
