@@ -114,7 +114,15 @@ export function initGame() {
     updateUI();
   });
   
-  
+  socket.on('mapUpdate', (data) => {
+  const state = getGameState();
+  setGameState({
+    ...state,
+    map: data.map
+  });
+  updateUI();
+  });
+
   socket.on('bombExploded', (data) => {
     const state = getGameState();
     state.bombs = state.bombs.filter(b => b.id !== data.bombId);
