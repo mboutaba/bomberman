@@ -1,5 +1,3 @@
-
-
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
@@ -141,6 +139,7 @@ function startGame() {
     gameState.players[id].x = pos.x;
     gameState.players[id].y = pos.y;
     gameState.players[id].lives = 3;
+    gameState.players[id].alive = true; // Reset alive status
     playerIndex++;
   });
   
@@ -230,6 +229,32 @@ io.on('connection', (socket) => {
           applyPowerup(player, powerup.type);
           gameState.powerups = gameState.powerups.filter(p => !(p.x === x && p.y === y));
           gameState.map[y][x] = 'empty';
+          
+          // Emit powerup collected event with updated player stats
+          io.emit('powerupCollected', { 
+            playerId: socket.id, 
+            powerupType: powerup.type,
+            x: x,
+            y: y
+          });
+          
+          // Emit updated player stats
+          io.emit('playerStatsUpdate', {
+            playerId: socket.id,
+            stats: {
+              bombs: player.bombs,
+              flames: player.flames,
+              speed: player.speed,
+              lives: player.lives
+            }
+          });
+          
+          // Send updated game state to all players
+          io.emit('gameStateUpdate', {
+            players: gameState.players,
+            powerups: gameState.powerups,
+            map: gameState.map
+          });
         }
       }
       
@@ -240,7 +265,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('placeBomb', () => {
-    if (!gameState.gameStarted || !gameState.players[socket.id]) return;
+    if (!gameState.gameStarted || !gameState.players[socket.id] || !gameState.players[socket.id].alive) return;
     
     const player = gameState.players[socket.id];
     const existingBomb = gameState.bombs.find(b => b.x === player.x && b.y === player.y);
@@ -258,6 +283,17 @@ io.on('connection', (socket) => {
       player.bombs--;
       
       io.emit('bombPlaced', bomb);
+      
+      // Emit updated player stats immediately when bomb is placed
+      io.emit('playerStatsUpdate', {
+        playerId: socket.id,
+        stats: {
+          bombs: player.bombs,
+          flames: player.flames,
+          speed: player.speed,
+          lives: player.lives
+        }
+      });
       
       setTimeout(() => {
         explodeBomb(bomb);
@@ -309,7 +345,20 @@ function explodeBomb(bomb) {
   gameState.bombs = gameState.bombs.filter(b => b.id !== bomb.id);
   
   const player = gameState.players[bomb.playerId];
-  if (player) player.bombs++; // Return bomb to player
+  if (player) {
+    player.bombs++; // Return bomb to player
+    
+    // Emit updated player stats when bomb explodes
+    io.emit('playerStatsUpdate', {
+      playerId: bomb.playerId,
+      stats: {
+        bombs: player.bombs,
+        flames: player.flames,
+        speed: player.speed,
+        lives: player.lives
+      }
+    });
+  }
   
   const explosions = [];
   const directions = [
@@ -319,15 +368,10 @@ function explodeBomb(bomb) {
   ];
   
   directions.forEach(([dx, dy]) => {
-    // for (let i = 0; i < (player ? player.flames : 1); i++) {
-     for (let i = 0; i <= (player ? player.flames : 1); i++) {
-
-
+    for (let i = 0; i <= (player ? player.flames : 1); i++) {
       const x = bomb.x + dx * i;
       const y = bomb.y + dy * i;
       
-     
-
       if (x < 0 || x >= 15 || y < 0 || y >= 13) break;
       if (gameState.map[y][x] === 'wall') break;
       
@@ -335,7 +379,6 @@ function explodeBomb(bomb) {
       
       // Destroy blocks and maybe spawn powerup
       if (gameState.map[y][x] === 'block') {
-
         console.log('Block destroyed at:', x, y);
         
         gameState.map[y][x] = 'empty';
@@ -354,19 +397,50 @@ function explodeBomb(bomb) {
   });
   
   // Check player damage
+  const damagedPlayers = [];
   Object.keys(gameState.players).forEach(playerId => {
     const p = gameState.players[playerId];
-    if (explosions.some(exp => exp.x === p.x && exp.y === p.y)) {
+    if (p.alive && explosions.some(exp => exp.x === p.x && exp.y === p.y)) {
       p.lives--;
+      damagedPlayers.push({
+        playerId,
+        lives: p.lives,
+        alive: p.lives > 0
+      });
+      
       if (p.lives <= 0) {
         p.alive = false;
         io.emit('playerDied', { playerId });
       }
+      
+      // Emit real-time life update immediately
+      io.emit('playerStatsUpdate', {
+        playerId,
+        stats: {
+          bombs: p.bombs,
+          flames: p.flames,
+          speed: p.speed,
+          lives: p.lives
+        }
+      });
     }
   });
   
-  io.emit('bombExploded', { bombId: bomb.id, explosions });
+  io.emit('bombExploded', { 
+    bombId: bomb.id, 
+    explosions,
+    damagedPlayers 
+  });
+
   io.emit('mapUpdate', { map: gameState.map });
+  
+  // Send updated game state to ensure powerups are synced
+  io.emit('gameStateUpdate', {
+    players: gameState.players,
+    powerups: gameState.powerups,
+    map: gameState.map
+  });
+
   // Check win condition
   const alivePlayers = Object.values(gameState.players).filter(p => p.alive);
   if (alivePlayers.length <= 1) {

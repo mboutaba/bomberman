@@ -90,7 +90,6 @@ function WaitingScreen() {
             maxlength: '100'
           }),
           h('button', { type: 'submit', class: 'btn chat-btn' }, 'Send')
-
         )
       )
     )
@@ -163,16 +162,34 @@ function GameScreen() {
           const isMe = player.id === state.myPlayerId;
           return h('div', {
             key: player.id,
-            class: 'player-info',
-            style: isMe ? 'border: 2px solid #007bff;' : ''
+            class: 'player-info player-stats',
+            style: isMe ? 'border: 2px solid #007bff; padding: 8px; margin: 4px 0; border-radius: 4px;' : 'padding: 8px; margin: 4px 0;'
           },
-            h('span', { class: `player-${index}` }, '●'),
-            ' ',
-            player.nickname,
-            isMe ? ' (You)' : '',
-            h('br'),
-            `Lives: ${player.lives} | Bombs: ${player.bombs} | Flames: ${player.flames}`,
-            !player.alive ? ' [DEAD]' : ''
+            h('div', { class: 'player-header' },
+              h('span', { class: `player-${index}` }, '●'),
+              ' ',
+              player.nickname,
+              isMe ? ' (You)' : '',
+              !player.alive ? ' [DEAD]' : ''
+            ),
+            h('div', { class: 'player-stats-grid' },
+              h('div', { class: 'stat' },
+                h('span', { class: 'stat-label' }, '❤️ Lives: '),
+                h('span', { class: 'stat-value' }, player.lives)
+              ),
+              h('div', { class: 'stat' },
+                h('span', { class: 'stat-label' }, '💣 Bombs: '),
+                h('span', { class: 'stat-value' }, player.bombs)
+              ),
+              h('div', { class: 'stat' },
+                h('span', { class: 'stat-label' }, '🔥 Flames: '),
+                h('span', { class: 'stat-value' }, player.flames)
+              ),
+              h('div', { class: 'stat' },
+                h('span', { class: 'stat-label' }, '⚡ Speed: '),
+                h('span', { class: 'stat-value' }, player.speed.toFixed(1))
+              )
+            )
           );
         })
       ),
@@ -284,8 +301,6 @@ function init() {
       appElement.firstChild.focus();
     }
   }, 100);
-
-
 }
 
 // Start the application

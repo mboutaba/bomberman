@@ -115,27 +115,76 @@ export function initGame() {
   });
   
   socket.on('mapUpdate', (data) => {
-  const state = getGameState();
-  setGameState({
-    ...state,
-    map: data.map
+    const state = getGameState();
+    setGameState({
+      ...state,
+      map: data.map
+    });
+    updateUI();
   });
-  updateUI();
+
+  // Handle real-time player stats updates
+  socket.on('playerStatsUpdate', (data) => {
+    const state = getGameState();
+    if (state.players[data.playerId]) {
+      // Update specific player stats
+      state.players[data.playerId].bombs = data.stats.bombs;
+      state.players[data.playerId].flames = data.stats.flames;
+      state.players[data.playerId].speed = data.stats.speed;
+      state.players[data.playerId].lives = data.stats.lives;
+      
+      setGameState(state);
+      updateUI();
+    }
+  });
+
+  // Handle powerup collection with immediate UI feedback
+  socket.on('powerupCollected', (data) => {
+    const state = getGameState();
+    // Remove the powerup from local state immediately
+    state.powerups = state.powerups.filter(p => !(p.x === data.x && p.y === data.y));
+    
+    setGameState(state);
+    updateUI();
+  });
+
+  // Handle complete game state updates (for powerups sync)
+  socket.on('gameStateUpdate', (data) => {
+    const state = getGameState();
+    setGameState({
+      ...state,
+      players: data.players,
+      powerups: data.powerups,
+      map: data.map
+    });
+    updateUI();
   });
 
   socket.on('bombExploded', (data) => {
     const state = getGameState();
     state.bombs = state.bombs.filter(b => b.id !== data.bombId);
     
+    // Handle damaged players with real-time life updates
+    if (data.damagedPlayers) {
+      data.damagedPlayers.forEach(damaged => {
+        if (state.players[damaged.playerId]) {
+          state.players[damaged.playerId].lives = damaged.lives;
+          state.players[damaged.playerId].alive = damaged.alive;
+        }
+      });
+    }
+    
     // Show explosions briefly
     state.explosions = data.explosions;
-    setGameState(state);
+    setGameState({ ...state }); // Create new object to trigger update
     updateUI();
     
     setTimeout(() => {
       const currentState = getGameState();
-      currentState.explosions = [];
-      setGameState(currentState);
+      setGameState({
+        ...currentState,
+        explosions: []
+      });
       updateUI();
     }, 300);
   });
