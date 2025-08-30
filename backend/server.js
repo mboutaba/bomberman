@@ -26,13 +26,53 @@
 // console.log("WebSocket server running on ws://localhost:8080");
 
 
-const express = require('express');
+//const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 
-const app = express();
-const server = http.createServer(app);
+const fs = require('fs');
+
+//const app = express();
+
+
+const server = http.createServer((req, res) => {
+  // Serve the index.html file when the root URL is requested
+  if (req.url === '/') {
+    const filePath = path.join(__dirname, '..', 'frontend', 'index.html'); // Going up one directory to the root
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+      if (err) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('Server Error');
+      } else {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(data);
+      }
+    });
+  }
+
+  // Serve JavaScript files from the frontend/js directory
+  else if (req.url.startsWith('/js/') && req.url.endsWith('.js')) {
+    const filePath = path.join(__dirname, '..', 'frontend', req.url);  // Going up one directory to the root
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+      if (err) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('JavaScript File Not Found');
+      } else {
+        res.writeHead(200, { 'Content-Type': 'application/javascript' });
+        res.end(data);
+      }
+    });
+  }
+
+  // Return 404 for any other requests
+  else {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
+  }
+});
+
+
 const io = socketIo(server, {
   cors: {
     origin: "*",
@@ -41,7 +81,7 @@ const io = socketIo(server, {
 });
 
 // Serve static files from frontend
-app.use(express.static(path.join(__dirname, '../frontend')));
+//app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Game state
 let gameState = {
@@ -57,8 +97,8 @@ let gameState = {
 let playerCount = 0;
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 2;
-const WAITING_TIME = 20000; // 20 seconds
-const COUNTDOWN_TIME = 10000; // 10 seconds
+const WAITING_TIME = 2000; // 20 seconds
+const COUNTDOWN_TIME = 1000; // 10 seconds
 
 // Initialize map (15x13 grid)
 function initializeMap() {
@@ -263,6 +303,7 @@ io.on('connection', (socket) => {
   });
 });
 
+
 function applyPowerup(player, type) {
   switch (type) {
     case 'bombs':
@@ -291,10 +332,15 @@ function explodeBomb(bomb) {
   ];
   
   directions.forEach(([dx, dy]) => {
-    for (let i = 0; i < (player ? player.flames : 1); i++) {
+    // for (let i = 0; i < (player ? player.flames : 1); i++) {
+     for (let i = 0; i <= (player ? player.flames : 1); i++) {
+
+
       const x = bomb.x + dx * i;
       const y = bomb.y + dy * i;
       
+     
+
       if (x < 0 || x >= 15 || y < 0 || y >= 13) break;
       if (gameState.map[y][x] === 'wall') break;
       
@@ -339,7 +385,8 @@ function explodeBomb(bomb) {
   }
 }
 
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
+
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
