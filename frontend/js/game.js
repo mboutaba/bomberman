@@ -114,6 +114,7 @@ export function initGame() {
     updateUI();
   });
   
+  
   socket.on('bombExploded', (data) => {
     const state = getGameState();
     state.bombs = state.bombs.filter(b => b.id !== data.bombId);
@@ -191,50 +192,53 @@ function updateUI() {
   }
 }
 
-// Input handling
+// Input handling through framework
 let keys = {};
 
-export function initInput() {
-  document.addEventListener('keydown', (e) => {
-    keys[e.key.toLowerCase()] = true;
-    
-    const state = getGameState();
-    if (state.screen !== 'game' || !state.gameStarted) return;
-    
-    switch (e.key.toLowerCase()) {
-      case 'arrowup':
-      case 'w':
-        e.preventDefault();
-        movePlayer('up');
-        break;
-      case 'arrowdown':
-      case 's':
-        e.preventDefault();
-        movePlayer('down');
-        break;
-      case 'arrowleft':
-      case 'a':
-        e.preventDefault();
-        movePlayer('left');
-        break;
-      case 'arrowright':
-      case 'd':
-        e.preventDefault();
-        movePlayer('right');
-        break;
-      case ' ':
-      case 'enter':
-        e.preventDefault();
-        placeBomb();
-        break;
-    }
-  });
+export function handleKeyDown(e) {
+  keys[e.key.toLowerCase()] = true;
   
-  document.addEventListener('keyup', (e) => {
-    keys[e.key.toLowerCase()] = false;
-  });
+  const state = getGameState();
+  if (state.screen !== 'game' || !state.gameStarted) return;
+  
+  switch (e.key.toLowerCase()) {
+    case 'arrowup':
+    case 'w':
+      e.preventDefault();
+      movePlayer('up');
+      break;
+    case 'arrowdown':
+    case 's':
+      e.preventDefault();
+      movePlayer('down');
+      break;
+    case 'arrowleft':
+    case 'a':
+      e.preventDefault();
+      movePlayer('left');
+      break;
+    case 'arrowright':
+    case 'd':
+      e.preventDefault();
+      movePlayer('right');
+      break;
+    case ' ':
+    case 'enter':
+      e.preventDefault();
+      placeBomb();
+      break;
+  }
+}
+
+export function handleKeyUp(e) {
+  keys[e.key.toLowerCase()] = false;
 }
 
 export function isKeyPressed(key) {
   return keys[key.toLowerCase()] || false;
+}
+
+export function initInput() {
+  // Input is now handled through the framework
+  console.log('Input system ready - using framework event handlers');
 }

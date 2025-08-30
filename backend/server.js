@@ -348,6 +348,9 @@ function explodeBomb(bomb) {
       
       // Destroy blocks and maybe spawn powerup
       if (gameState.map[y][x] === 'block') {
+
+        console.log('Block destroyed at:', x, y);
+        
         gameState.map[y][x] = 'empty';
         if (Math.random() < 0.3) {
           const powerupTypes = ['bombs', 'flames', 'speed'];

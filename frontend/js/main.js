@@ -1,7 +1,7 @@
 // Main application entry point
 import { renderApp } from './render.js';
 import { initRouter, useRoute } from './router.js';
-import { initGame, joinGame, getState, onGameUpdate, initInput, sendChatMessage } from './game.js';
+import { initGame, joinGame, getState, onGameUpdate, initInput, sendChatMessage, handleKeyDown, handleKeyUp } from './game.js';
 
 let animationId;
 let lastFrameTime = 0;
@@ -192,18 +192,33 @@ function GameOverScreen() {
 function App() {
   const state = getState();
   
+  // Add keyboard event handlers to the root element
+  const appProps = {
+    onkeydown: handleKeyDown,
+    onkeyup: handleKeyUp,
+    tabindex: '0', // Make div focusable
+    style: 'outline: none;' // Remove focus outline
+  };
+  
+  let content;
   switch (state.screen) {
     case 'nickname':
-      return NicknameScreen();
+      content = NicknameScreen();
+      break;
     case 'waiting':
-      return WaitingScreen();
+      content = WaitingScreen();
+      break;
     case 'game':
-      return GameScreen();
+      content = GameScreen();
+      break;
     case 'gameover':
-      return GameOverScreen();
+      content = GameOverScreen();
+      break;
     default:
-      return h('div', {}, 'Loading...');
+      content = h('div', {}, 'Loading...');
   }
+  
+  return h('div', appProps, content);
 }
 
 function gameLoop(currentTime) {
@@ -216,6 +231,7 @@ function gameLoop(currentTime) {
 }
 
 function init() {
+  
   initRouter();
   initGame();
   initInput();
@@ -226,6 +242,16 @@ function init() {
   
   // Start game loop
   animationId = requestAnimationFrame(gameLoop);
+  
+  // Focus the app for keyboard input
+  setTimeout(() => {
+    const appElement = document.getElementById('app');
+    if (appElement.firstChild) {
+      appElement.firstChild.focus();
+    }
+  }, 100);
+
+
 }
 
 // Start the application
