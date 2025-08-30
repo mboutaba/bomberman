@@ -97,8 +97,11 @@ function WaitingScreen() {
 }
 
 function GameScreen() {
+
   const state = getState();
   
+  const myPlayer = state.players[state.myPlayerId];
+
   function handleChatSubmit(e) {
     e.preventDefault();
     const message = e.target.message.value.trim();
@@ -156,6 +159,16 @@ function GameScreen() {
     
     // Sidebar
     h('div', { class: 'sidebar' },
+     
+      myPlayer && h('div', { class: 'my-stats', style: 'margin-bottom: 18px; padding: 10px; background: #222; border-radius: 8px;' },
+        h('h3', {}, 'Your Stats'),
+        h('div', { class: 'stat' }, `❤️ Lives: ${myPlayer.lives ?? 0}`),
+        h('div', { class: 'stat' }, `💣 Bombs: ${myPlayer.bombs ?? 1}`),
+        h('div', { class: 'stat' }, `🔥 Flames: ${myPlayer.flames ?? 1}`),
+        h('div', { class: 'stat' }, `⚡ Speed: ${myPlayer.speed ? myPlayer.speed.toFixed(1) : 1}`)
+      ),
+
+     
       h('h3', {}, 'Players'),
       h('div', { class: 'player-list' },
         ...playerArray.map((player, index) => {
@@ -172,24 +185,24 @@ function GameScreen() {
               isMe ? ' (You)' : '',
               !player.alive ? ' [DEAD]' : ''
             ),
-            h('div', { class: 'player-stats-grid' },
-              h('div', { class: 'stat' },
-                h('span', { class: 'stat-label' }, '❤️ Lives: '),
-                h('span', { class: 'stat-value' }, player.lives)
-              ),
-              h('div', { class: 'stat' },
-                h('span', { class: 'stat-label' }, '💣 Bombs: '),
-                h('span', { class: 'stat-value' }, player.bombs)
-              ),
-              h('div', { class: 'stat' },
-                h('span', { class: 'stat-label' }, '🔥 Flames: '),
-                h('span', { class: 'stat-value' }, player.flames)
-              ),
-              h('div', { class: 'stat' },
-                h('span', { class: 'stat-label' }, '⚡ Speed: '),
-                h('span', { class: 'stat-value' }, player.speed.toFixed(1))
-              )
-            )
+            // h('div', { class: 'player-stats-grid' },
+            //   h('div', { class: 'stat' },
+            //     h('span', { class: 'stat-label' }, '❤️ Lives: '),
+            //     h('span', { class: 'stat-value' }, player.lives)
+            //   ),
+            //   h('div', { class: 'stat' },
+            //     h('span', { class: 'stat-label' }, '💣 Bombs: '),
+            //     h('span', { class: 'stat-value' }, player.bombs)
+            //   ),
+            //   h('div', { class: 'stat' },
+            //     h('span', { class: 'stat-label' }, '🔥 Flames: '),
+            //     h('span', { class: 'stat-value' }, player.flames)
+            //   ),
+            //   h('div', { class: 'stat' },
+            //     h('span', { class: 'stat-label' }, '⚡ Speed: '),
+            //     h('span', { class: 'stat-value' }, player.speed.toFixed(1))
+            //   )
+            // )
           );
         })
       ),

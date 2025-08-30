@@ -82,8 +82,8 @@ let gameState = {
 let playerCount = 0;
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 2;
-const WAITING_TIME = 2000; // 20 seconds
-const COUNTDOWN_TIME = 1000; // 10 seconds
+const WAITING_TIME = 20000; // 20 seconds
+const COUNTDOWN_TIME = 10000; // 10 seconds
 
 // Initialize map (15x13 grid)
 function initializeMap() {
