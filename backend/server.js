@@ -1,32 +1,5 @@
-// // backend/server.js
-// import { WebSocketServer } from "ws";  // <-- named import
-
-// // Create WebSocket server on port 8080
-// const wss = new WebSocketServer({ port: 8080 });
-
-// wss.on("connection", (ws) => {
-//   console.log("New client connected");
-
-//   ws.send("Welcome to Bomberman server 🎮");
-
-//   ws.on("message", (message) => {
-//     console.log("Received:", message.toString());
-
-//     // Broadcast to all clients
-//     wss.clients.forEach((client) => {
-//       if (client.readyState === 1) {  // OPEN
-//         client.send(message.toString());
-//       }
-//     });
-//   });
-
-//   ws.on("close", () => console.log("Client disconnected"));
-// });
-
-// console.log("WebSocket server running on ws://localhost:8080");
 
 
-//const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
@@ -379,7 +352,7 @@ function explodeBomb(bomb) {
   });
   
   io.emit('bombExploded', { bombId: bomb.id, explosions });
-  
+  io.emit('mapUpdate', { map: gameState.map });
   // Check win condition
   const alivePlayers = Object.values(gameState.players).filter(p => p.alive);
   if (alivePlayers.length <= 1) {
