@@ -273,27 +273,27 @@ export function handleKeyDown(e) {
   
   switch (e.key.toLowerCase()) {
     case 'arrowup':
-    case 'w':
+
       e.preventDefault();
       movePlayer('up');
       break;
     case 'arrowdown':
-    case 's':
+ 
       e.preventDefault();
       movePlayer('down');
       break;
     case 'arrowleft':
-    case 'a':
+  
       e.preventDefault();
       movePlayer('left');
       break;
     case 'arrowright':
-    case 'd':
+   
       e.preventDefault();
       movePlayer('right');
       break;
     case ' ':
-    case 'enter':
+  
       e.preventDefault();
       placeBomb();
       break;

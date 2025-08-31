@@ -329,6 +329,22 @@ io.on('connection', (socket) => {
       delete gameState.players[socket.id];
       playerCount--;
       
+
+       if (gameState.gameStarted) {
+      const alivePlayers = Object.values(gameState.players).filter(p => p.alive);
+      if (alivePlayers.length === 1) {
+        io.emit('gameOver', { winner: alivePlayers[0] });
+        setTimeout(resetGame, 5000);
+        return;
+      }
+      if (alivePlayers.length === 0) {
+        io.emit('gameOver', { winner: null });
+        setTimeout(resetGame, 5000);
+        return;
+      }
+    }
+
+    
       // Clear waiting time counter if less than 2 players
       if (playerCount < MIN_PLAYERS && gameState.waitingTimeCounter) {
         clearInterval(gameState.waitingTimeCounter);

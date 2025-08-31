@@ -236,8 +236,8 @@ function GameScreen() {
       
       h('div', { class: 'controls' },
         h('h4', {}, 'Controls'),
-        h('p', {}, 'WASD or Arrow Keys: Move'),
-        h('p', {}, 'Space or Enter: Place Bomb')
+        h('p', {}, 'Arrow Keys : Move'),
+        h('p', {}, 'Space : Place Bomb')
       )
     )
   );
