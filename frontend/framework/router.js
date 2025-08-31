@@ -20,7 +20,8 @@ export const createRouter = (store) => {
     });
   };
 
-  window.addEventListener('hashchange', handleHashChange);
+  window.onhashchange = handleHashChange;
+
 
   // Initial route handling
   handleHashChange();
