@@ -7,6 +7,7 @@ let animationId;
 let lastFrameTime = 0;
 const TARGET_FPS = 60;
 const FRAME_TIME = 1000 / TARGET_FPS;
+let chatInputFocused = false;
 
 function h(type, props = {}, ...children) {
   return {
@@ -95,7 +96,7 @@ function WaitingScreen() {
             placeholder: 'Type message...',
             maxlength: '100'
           }),
-          h('button', { type: 'submit', class: 'btn chat-btn' }, 'Send')
+          // h('button', { type: 'submit', class: 'btn chat-btn' }, 'Send')
         )
       )
     )
@@ -210,9 +211,11 @@ function GameScreen() {
             type: 'text',
             name: 'message',
             placeholder: 'Type message...',
-            maxlength: '100'
+            maxlength: '100',
+            onfocus: () => { chatInputFocused = true; },
+            onblur: () => { chatInputFocused = false; }
           }),
-          h('button', { type: 'submit', class: 'btn' }, 'Send')
+          // h('button', { type: 'submit', class: 'btn' }, 'Send')
         )
       ),
       
@@ -250,15 +253,28 @@ function GameOverScreen() {
 
 }
 
+function appHandleKeyDown(e) {
+  if (!chatInputFocused) {
+    handleKeyDown(e);
+  }
+}
+function appHandleKeyUp(e) {
+  if (!chatInputFocused) {
+    handleKeyUp(e);
+  }
+}
+
+
+
 function App() {
   const state = getState();
   
   // Add keyboard event handlers to the root element
   const appProps = {
-    onkeydown: handleKeyDown,
-    onkeyup: handleKeyUp,
+    onkeydown: appHandleKeyDown,
+    onkeyup: appHandleKeyUp,
     tabindex: '0', // Make div focusable
-    style: 'outline: none;' // Remove focus outline
+     style: 'outline: none;' // Remove focus outline
   };
   
   let content;

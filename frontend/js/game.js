@@ -4,6 +4,7 @@ import { useState } from './mini-framework/state.js';
 let socket = null;
 let gameUpdateCallback = null;
 
+
 // Game state
 const [getGameState, setGameState] = useState('gameState', {
   screen: 'nickname', // nickname, waiting, game, gameover
@@ -264,7 +265,7 @@ function updateUI() {
 let keys = {};
 
 export function handleKeyDown(e) {
-  if (!e || !e.key) return;
+  if (!e || !e.key ) return;
   
   keys[e.key.toLowerCase()] = true;
   
