@@ -3,12 +3,12 @@ body, h1, h2, p, ul, li, button, input {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Verdana', sans-serif;
 }
 
 body {
-    background-color: #0d0d0d; /* Near black */
-    color: #fff;
+    background-color: #1a1a1a;
+    color: #eee;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -38,58 +38,114 @@ body {
 
 /* General App Container */
 .container {
-    background-color: #444;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    background-color: #2a2a2a;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     width: 100%;
+    max-width: 500px;
     text-align: center;
+    border: 1px solid #444;
+    animation: fadeIn 0.5s ease-out;
 }
 
 /* Nickname Screen */
 .nickname-screen h1 {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    color: #eee;
+    font-size: 2.5em;
 }
 
 .nickname-screen input {
-    padding: 10px;
-    border-radius: 4px;
-    border: 1px solid #555;
-    background-color: #222;
-    color: #fff;
-    width: 80%;
-    max-width: 300px;
-    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background-color: #1a1a1a;
+    color: #eee;
+    width: 100%;
+    margin-bottom: 20px;
+    font-size: 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.nickname-screen input:focus {
+    outline: none;
+    border-color: #FFC0CB; /* Soft Pink */
+    box-shadow: 0 0 5px #FFC0CB;
 }
 
 .nickname-screen button {
-    padding: 10px 20px;
-    border-radius: 4px;
+    padding: 15px 30px;
+    border-radius: 8px;
     border: none;
-    background-color: #007BFF;
+    background-color: #B76E79; /* Rose Gold */
     color: #fff;
     cursor: pointer;
     font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
 }
 
 .nickname-screen button:hover {
-    background-color: #0056b3;
+    background-color: #a35d6a;
+    transform: scale(1.05);
 }
 
 /* Lobby Screen */
+.lobby-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
 .lobby-screen h1 {
     margin-bottom: 10px;
+    color: #eee;
 }
 
 .lobby-screen p {
-    font-size: 18px;
-    margin-bottom: 20px;
+    font-size: 16px;
+    margin: 0;
+    color: #aaa;
 }
+
+.player-list {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    background-color: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.player-list li {
+    padding: 12px;
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #B76E79; /* Rose Gold */
+    text-align: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.player-list li:hover {
+    transform: scale(1.05);
+    background-color: #3a3a3a;
+}
+
+.player-list li:last-child {
+    margin-bottom: 0;
+}
+
 
 .lobby-screen .timer {
     font-size: 24px;
     font-weight: bold;
-    color: #FFD700;
+    color: #FFC0CB; /* Soft Pink */
 }
 
 /* Game Container */
@@ -149,7 +205,7 @@ body {
 .player-1 { filter: brightness(0) invert(1) drop-shadow(0 0 8px #00ff00); }
 .player-2 { filter: brightness(0) invert(1) drop-shadow(0 0 8px #ff00ff); }
 .player-3 { filter: brightness(0) invert(1) drop-shadow(0 0 8px #ffff00); }
-.player-4 { filter: brightness(0) invert(1) drop-shadow(0 0 8px #ff4500); }
+.player-4 { filter: brightness(0) invert(1) drop-shadow(0 0 8px #00FFFF); } /* Cyan */
 
 /* Bomb */
 .bomb {
@@ -235,6 +291,17 @@ body {
 
 /* --- Animations --- */
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @keyframes fire-explosion {
     0% {
         transform: scale(0.2);
@@ -301,7 +368,7 @@ body {
 .player-1 .player-icon { border-color: #00ff00; }
 .player-2 .player-icon { border-color: #ff00ff; }
 .player-3 .player-icon { border-color: #ffff00; }
-.player-4 .player-icon { border-color: #ff4500; }
+.player-4 .player-icon { border-color: #00FFFF; } /* Cyan */
 
 .nickname {
     font-weight: bold;

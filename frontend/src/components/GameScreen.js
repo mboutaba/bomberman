@@ -1,7 +1,5 @@
 import FacileJS from '../../framework/index.js';
 import { boardManager } from '../game/boardManager.js';
-//import { ChatComponent } from './Chat.js'; remove chat from screen game 
-
 
 function BoardRendererComponent({ map }) {
     boardManager.reset();

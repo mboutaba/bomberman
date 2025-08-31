@@ -64,8 +64,7 @@ export const boardManager = {
             tag: 'img', // Create an <img> element for players
             updateFunc: (el, p) => {
                 el.className = `player player-${p.id} ${p.isAlive ? '' : 'dead'}`;
-                
-                el.src = 'assets/ghost.png' // Use local ghost image
+                el.src = 'assets/ghost.png'; // Use local ghost image
                 el.style.transform = `translate(${p.x}px, ${p.y}px)`;
             }
         });
