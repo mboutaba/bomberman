@@ -269,6 +269,7 @@ export function handleKeyDown(e) {
   keys[e.key.toLowerCase()] = true;
   
   const state = getGameState();
+  
   if (state.screen !== 'game' || !state.gameStarted) return;
   
   switch (e.key.toLowerCase()) {

@@ -86,67 +86,67 @@ function updateProps(element, newProps, oldProps) {
   }
 }
 
-function diffChildren(parentElement, newChildren, oldChildren) {
-  // For better list diffing, check if we're dealing with keyed children
-  const hasKeys = newChildren.some(child => getKey(child) != null) || 
-                  oldChildren.some(child => getKey(child) != null);
+// function diffChildren(parentElement, newChildren, oldChildren) {
+//   // For better list diffing, check if we're dealing with keyed children
+//   const hasKeys = newChildren.some(child => getKey(child) != null) || 
+//                   oldChildren.some(child => getKey(child) != null);
   
-  if (hasKeys) {
-    // Use keyed diffing for lists
-    diffKeyedChildren(parentElement, newChildren, oldChildren);
-  } else {
-    // Use simple position-based diffing
-    diffSimpleChildren(parentElement, newChildren, oldChildren);
-  }
-}
+//   if (hasKeys) {
+//     // Use keyed diffing for lists
+//     diffKeyedChildren(parentElement, newChildren, oldChildren);
+//   } else {
+//     // Use simple position-based diffing
+//     diffSimpleChildren(parentElement, newChildren, oldChildren);
+//   }
+// }
 
-function diffKeyedChildren(parentElement, newChildren, oldChildren) {
-  const oldKeyToIndex = {};
-  const oldElements = Array.from(parentElement.childNodes);
+// function diffKeyedChildren(parentElement, newChildren, oldChildren) {
+//   const oldKeyToIndex = {};
+//   const oldElements = Array.from(parentElement.childNodes);
   
-  // Build old key map
-  oldChildren.forEach((child, index) => {
-    const key = getKey(child);
-    if (key != null) {
-      oldKeyToIndex[key] = index;
-    }
-  });
+//   // Build old key map
+//   oldChildren.forEach((child, index) => {
+//     const key = getKey(child);
+//     if (key != null) {
+//       oldKeyToIndex[key] = index;
+//     }
+//   });
   
-  // Process new children
-  for (let newIndex = 0; newIndex < newChildren.length; newIndex++) {
-    const newChild = newChildren[newIndex];
-    const newKey = getKey(newChild);
+//   // Process new children
+//   for (let newIndex = 0; newIndex < newChildren.length; newIndex++) {
+//     const newChild = newChildren[newIndex];
+//     const newKey = getKey(newChild);
     
-    if (newKey != null && oldKeyToIndex.hasOwnProperty(newKey)) {
-      // Found matching key - reuse existing element
-      const oldElementIndex = oldKeyToIndex[newKey];
-      const oldElement = oldElements[oldElementIndex];
-      const oldChild = oldChildren[oldElementIndex];
+//     if (newKey != null && oldKeyToIndex.hasOwnProperty(newKey)) {
+//       // Found matching key - reuse existing element
+//       const oldElementIndex = oldKeyToIndex[newKey];
+//       const oldElement = oldElements[oldElementIndex];
+//       const oldChild = oldChildren[oldElementIndex];
       
-      // Move element to correct position if needed
-      if (parentElement.childNodes[newIndex] !== oldElement) {
-        parentElement.insertBefore(oldElement, parentElement.childNodes[newIndex] || null);
-      }
+//       // Move element to correct position if needed
+//       if (parentElement.childNodes[newIndex] !== oldElement) {
+//         parentElement.insertBefore(oldElement, parentElement.childNodes[newIndex] || null);
+//       }
       
-      // Update the element
-      if (typeof newChild !== "string") {
-        updateProps(oldElement, newChild.props || {}, oldChild.props || {});
-        diffChildren(oldElement, newChild.children || [], oldChild.children || []);
-      }
-    } else {
-      // New element - create and insert
-      const newElement = createElement(newChild);
-      parentElement.insertBefore(newElement, parentElement.childNodes[newIndex] || null);
-    }
-  }
+//       // Update the element
+//       if (typeof newChild !== "string") {
+//         updateProps(oldElement, newChild.props || {}, oldChild.props || {});
+//         diffChildren(oldElement, newChild.children || [], oldChild.children || []);
+//       }
+//     } else {
+//       // New element - create and insert
+//       const newElement = createElement(newChild);
+//       parentElement.insertBefore(newElement, parentElement.childNodes[newIndex] || null);
+//     }
+//   }
   
   // Remove any remaining old elements
-  while (parentElement.childNodes.length > newChildren.length) {
-    parentElement.removeChild(parentElement.lastChild);
-  }
-}
+//   while (parentElement.childNodes.length > newChildren.length) {
+//     parentElement.removeChild(parentElement.lastChild);
+//   }
+// }
 
-function diffSimpleChildren(parentElement, newChildren, oldChildren) {
+function diffChildren(parentElement, newChildren, oldChildren) {
   // Handle removals first (from end to start to avoid index issues)
   for (let i = oldChildren.length - 1; i >= newChildren.length; i--) {
     if (parentElement.childNodes[i]) {

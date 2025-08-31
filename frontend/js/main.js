@@ -1,6 +1,6 @@
 // Main application entry point
 import { renderApp } from './mini-framework/render.js';
-import { initRouter, useRoute } from './mini-framework/router.js';
+import { initRouter} from './mini-framework/router.js';
 import { initGame, joinGame, getState, onGameUpdate, initInput, sendChatMessage, handleKeyDown, handleKeyUp } from './game.js';
 
 let animationId;
@@ -191,24 +191,6 @@ function GameScreen() {
               isMe ? ' (You)' : '',
               !player.alive ? ' [DEAD]' : ''
             ),
-            // h('div', { class: 'player-stats-grid' },
-            //   h('div', { class: 'stat' },
-            //     h('span', { class: 'stat-label' }, '❤️ Lives: '),
-            //     h('span', { class: 'stat-value' }, player.lives)
-            //   ),
-            //   h('div', { class: 'stat' },
-            //     h('span', { class: 'stat-label' }, '💣 Bombs: '),
-            //     h('span', { class: 'stat-value' }, player.bombs)
-            //   ),
-            //   h('div', { class: 'stat' },
-            //     h('span', { class: 'stat-label' }, '🔥 Flames: '),
-            //     h('span', { class: 'stat-value' }, player.flames)
-            //   ),
-            //   h('div', { class: 'stat' },
-            //     h('span', { class: 'stat-label' }, '⚡ Speed: '),
-            //     h('span', { class: 'stat-value' }, player.speed.toFixed(1))
-            //   )
-            // )
           );
         })
       ),
@@ -247,16 +229,25 @@ function GameOverScreen() {
   const state = getState();
   
   return h('div', { class: 'screen' },
+
     h('h1', {}, 'Game Over!'),
+
     state.winner ? 
+
       h('h2', {}, `🎉 ${state.winner.nickname} Wins! 🎉`) :
-      h('h2', {}, 'Draw!'),
-    h('p', {}, 'Returning to lobby in 5 seconds...'),
+
+     h('h2', {}, 'No Winner'),
+   
+      h('p', {}, '🏆 Go back to lobby champion! 🏆'),
+   
     h('button', { 
       class: 'btn',
-      onclick: () => window.location.reload()
+      onclick: () => window.location.reload()            ///////////////
     }, 'Play Again')
   );
+
+
+
 }
 
 function App() {
@@ -292,6 +283,7 @@ function App() {
 }
 
 function gameLoop(currentTime) {
+
   if (currentTime - lastFrameTime >= FRAME_TIME) {
     renderApp(App, document.getElementById('app'));
     lastFrameTime = currentTime;

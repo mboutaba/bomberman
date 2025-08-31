@@ -1,10 +1,9 @@
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
-
 const fs = require('fs');
 
-//const app = express();
+
 
 
 const server = http.createServer((req, res) => {
@@ -72,6 +71,7 @@ const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 2;
 const WAITING_TIME = 20; // 20 seconds
 const COUNTDOWN_TIME = 10000; // 10 seconds
+
 // Game state
 let gameState = {
   players: {},
@@ -108,6 +108,8 @@ function initializeMap() {
   }
   return map;
 }
+
+
 
 function isStartingPosition(x, y) {
   const startPositions = [
