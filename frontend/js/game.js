@@ -109,13 +109,33 @@ export function initGame() {
     updateUI();
   });
   
+  let pendingMoves = new Map();
+  let moveUpdateScheduled = false;
+  
   socket.on('playerMoved', (data) => {
-    const state = getGameState();
-    if (state.players[data.playerId]) {
-      state.players[data.playerId].x = data.x;
-      state.players[data.playerId].y = data.y;
-      setGameState(state);
-      updateUI();
+    pendingMoves.set(data.playerId, data);
+    
+    if (!moveUpdateScheduled) {
+      moveUpdateScheduled = true;
+      requestAnimationFrame(() => {
+        moveUpdateScheduled = false;
+        const state = getGameState();
+        let updated = false;
+        
+        pendingMoves.forEach((moveData, playerId) => {
+          if (state.players[playerId]) {
+            state.players[playerId].x = moveData.x;
+            state.players[playerId].y = moveData.y;
+            updated = true;
+          }
+        });
+        
+        pendingMoves.clear();
+        if (updated) {
+          setGameState(state);
+          updateUI();
+        }
+      });
     }
   });
   
@@ -255,47 +275,49 @@ export function onGameUpdate(callback) {
   gameUpdateCallback = callback;
 }
 
+let lastUpdateTime = 0;
+const UI_UPDATE_THROTTLE = 16;
+
 function updateUI() {
-  if (gameUpdateCallback) {
+  if (!gameUpdateCallback) return;
+  
+  const currentTime = performance.now();
+  if (currentTime - lastUpdateTime >= UI_UPDATE_THROTTLE) {
     gameUpdateCallback();
+    lastUpdateTime = currentTime;
   }
 }
 
-// Input handling through framework
 let keys = {};
 
+let lastMoveTime = 0;
+const MOVE_THROTTLE = 50;
+
 export function handleKeyDown(e) {
-  if (!e || !e.key ) return;
+  if (!e || !e.key) return;
   
-  keys[e.key.toLowerCase()] = true;
+  const key = e.key.toLowerCase();
+  if (keys[key]) return; // Already pressed
+  
+  keys[key] = true;
   
   const state = getGameState();
-  
   if (state.screen !== 'game' || !state.gameStarted) return;
   
-  switch (e.key.toLowerCase()) {
-    case 'arrowup':
-
-      e.preventDefault();
-      movePlayer('up');
-      break;
-    case 'arrowdown':
- 
-      e.preventDefault();
-      movePlayer('down');
-      break;
-    case 'arrowleft':
+  const currentTime = performance.now();
   
-      e.preventDefault();
-      movePlayer('left');
-      break;
+  switch (key) {
+    case 'arrowup':
+    case 'arrowdown':
+    case 'arrowleft':
     case 'arrowright':
-   
       e.preventDefault();
-      movePlayer('right');
+      if (currentTime - lastMoveTime >= MOVE_THROTTLE) {
+        movePlayer(key.replace('arrow', '').toLowerCase());
+        lastMoveTime = currentTime;
+      }
       break;
     case ' ':
-  
       e.preventDefault();
       placeBomb();
       break;

@@ -48,6 +48,26 @@ const server = http.createServer((req, res) => {
       }
     });
   }
+  
+  // Serve image files from the assets directory
+  else if (req.url.startsWith('/assets/') && (req.url.endsWith('.png') || req.url.endsWith('.jpg') || req.url.endsWith('.gif'))) {
+    const filePath = path.join(__dirname, '..', 'frontend', req.url);
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Image Not Found');
+      } else {
+        const ext = path.extname(req.url).toLowerCase();
+        const contentType = {
+          '.png': 'image/png',
+          '.jpg': 'image/jpeg',
+          '.gif': 'image/gif'
+        }[ext];
+        res.writeHead(200, { 'Content-Type': contentType });
+        res.end(data);
+      }
+    });
+  }
 
   // Return 404 for any other requests
   else {
@@ -69,8 +89,8 @@ const io = socketIo(server, {
 let playerCount = 0;
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 2;
-const WAITING_TIME = 20; // 20 seconds
-const COUNTDOWN_TIME = 10000; // 10 seconds
+const WAITING_TIME = 2; // 20 seconds
+const COUNTDOWN_TIME = 1000; // 10 seconds
 
 // Game state
 let gameState = {

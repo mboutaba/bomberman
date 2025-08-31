@@ -60,7 +60,7 @@ body {
 
 .game-board {
     position: relative;
-    background: #2d2d2d;
+    /* background: #2d2d2d; */
     border: 3px solid #555;
 }
 
@@ -68,24 +68,22 @@ body {
     width: 32px;
     height: 32px;
     position: absolute;
-    border: 1px solid #333;
+    background-size: 100% 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
 }
 
 .wall {
-    background: #666;
+    background: url('/assets/tile.png') center/100% 100% no-repeat;
 }
 
 .block {
-    background: #8B4513;
+    background: url('/assets/wood.png') center/100% 100% no-repeat;
 }
 
 .empty {
-    background: #2d2d2d;
-}
-
-.powerup {
-    background: #FFD700;
-    border-radius: 50%;
+    background: url('/assets/grass.png') center/100% 100% no-repeat;
 }
 
 .player {
@@ -155,6 +153,117 @@ body {
     100% {
         transform: scale(1);
         opacity: 0;
+    }
+}
+
+/* New My Stats Animations */
+.my-stats {
+    position: relative;
+    animation: slideIn 0.3s ease-out;
+    background: linear-gradient(135deg, #222 0%, #333 100%);
+    border: 2px solid #444;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.my-stats h3 {
+    color: #007bff;
+    text-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+    }
+    to {
+        text-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
+    }
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    animation: fadeIn 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.stat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    to {
+        left: 100%;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stat-specific animations */
+.stat:nth-child(1) { animation-delay: 0.1s; }
+.stat:nth-child(2) { animation-delay: 0.2s; }
+.stat:nth-child(3) { animation-delay: 0.3s; }
+.stat:nth-child(4) { animation-delay: 0.4s; }
+
+/* Value change animation */
+.stat.value-changed {
+    animation: pulse 0.3s ease-out;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+        background: rgba(0, 123, 255, 0.2);
+    }
+    100% {
+        transform: scale(1);
     }
 }
 

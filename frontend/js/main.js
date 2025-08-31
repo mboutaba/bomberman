@@ -1,6 +1,6 @@
 // Main application entry point
 import { renderApp } from './mini-framework/render.js';
-import { initRouter} from './mini-framework/router.js';
+import { initRouter } from './mini-framework/router.js';
 import { initGame, joinGame, getState, onGameUpdate, initInput, sendChatMessage, handleKeyDown, handleKeyUp } from './game.js';
 
 let animationId;
@@ -19,7 +19,7 @@ function h(type, props = {}, ...children) {
 
 function NicknameScreen() {
   const state = getState();
-  
+
   function handleSubmit(e) {
     e.preventDefault();
     const nickname = e.target.nickname.value.trim();
@@ -27,7 +27,7 @@ function NicknameScreen() {
       joinGame(nickname);
     }
   }
-  
+
   return h('div', { class: 'screen' },
     h('h1', {}, 'Bomberman DOM'),
     h('p', {}, 'Enter your nickname to join the battle!'),
@@ -47,7 +47,7 @@ function NicknameScreen() {
 
 function WaitingScreen() {
   const state = getState();
-  
+
   function handleChatSubmit(e) {
     e.preventDefault();
     const message = e.target.message.value.trim();
@@ -56,7 +56,7 @@ function WaitingScreen() {
       e.target.message.value = '';
     }
   }
-  
+
   return h('div', { class: 'screen waiting-screen' },
     h('div', { class: 'waiting-info' },
       h('h1', {}, 'Waiting for Players'),
@@ -66,10 +66,10 @@ function WaitingScreen() {
       ] : [],
       state.countdown > 0 ? [
         h('div', { class: 'countdown' }, `Game starts in: ${state.countdown}s`)
-      ] : 
-      state.playerCount < 2 ? [
-        h('p', {}, 'Waiting for more players...')
-      ] : [],
+      ] :
+        state.playerCount < 2 ? [
+          h('p', {}, 'Waiting for more players...')
+        ] : [],
       h('div', { class: 'player-list' },
         Object.values(state.players).map((player, index) =>
           h('div', { key: player.id, class: 'player-info' },
@@ -106,7 +106,7 @@ function WaitingScreen() {
 function GameScreen() {
 
   const state = getState();
-  
+
   const myPlayer = state.players[state.myPlayerId];
 
   function handleChatSubmit(e) {
@@ -117,9 +117,9 @@ function GameScreen() {
       e.target.message.value = '';
     }
   }
-  
+
   const playerArray = Object.values(state.players);
-  
+
   return h('div', { class: 'game-container' },
     // Game Board
     h('div', { class: 'game-board', style: 'width: 480px; height: 416px;' },
@@ -133,7 +133,7 @@ function GameScreen() {
           })
         )
       ),
-      
+
       // Players
       ...playerArray
         .filter(player => player.alive)
@@ -144,7 +144,24 @@ function GameScreen() {
             style: `left: ${player.x * 32}px; top: ${player.y * 32}px;`
           })
         ),
-      
+
+      // Powerups with icons
+      ...state.powerups.map((powerup, index) => {
+        let icon = '';
+        switch (powerup.type) {
+          case 'bombs':
+            icon = '💣';
+            break;
+          case 'flames':
+            icon = '🔥';
+            break;
+          case 'speed':
+            icon = '⚡';
+            break;
+        }
+        return h('div', { key: `powerup-${index}`, class: `powerup ${powerup.type}`, style: `left: ${powerup.x * 32}px; top: ${powerup.y * 32}px;` }, icon);
+      }),
+
       // Bombs
       ...state.bombs.map(bomb =>
         h('div', {
@@ -153,7 +170,7 @@ function GameScreen() {
           style: `left: ${bomb.x * 32}px; top: ${bomb.y * 32}px;`
         })
       ),
-      
+
       // Explosions
       ...state.explosions.map((explosion, index) =>
         h('div', {
@@ -163,19 +180,31 @@ function GameScreen() {
         })
       )
     ),
-    
+
     // Sidebar
     h('div', { class: 'sidebar' },
-     
-      myPlayer && h('div', { class: 'my-stats', style: 'margin-bottom: 18px; padding: 10px; background: #222; border-radius: 8px;' },
+
+      myPlayer && h('div', { class: 'my-stats' },
         h('h3', {}, 'Your Stats'),
-        h('div', { class: 'stat' }, `❤️ Lives: ${myPlayer.lives ?? 0}`),
-        h('div', { class: 'stat' }, `💣 Bombs: ${myPlayer.bombs ?? 1}`),
-        h('div', { class: 'stat' }, `🔥 Flames: ${myPlayer.flames ?? 1}`),
-        h('div', { class: 'stat' }, `⚡ Speed: ${myPlayer.speed ? myPlayer.speed.toFixed(1) : 1}`)
+        h('div', {
+          class: `stat stat-lives ${myPlayer._prevLives !== undefined && myPlayer._prevLives !== myPlayer.lives ? 'value-changed' : ''}`,
+          onanimationend: () => { myPlayer._prevLives = myPlayer.lives; }
+        }, `❤️ Lives: ${myPlayer.lives ?? 0}`),
+        h('div', {
+          class: `stat stat-bombs ${myPlayer._prevBombs !== undefined && myPlayer._prevBombs !== myPlayer.bombs ? 'value-changed' : ''}`,
+          onanimationend: () => { myPlayer._prevBombs = myPlayer.bombs; }
+        }, `💣 Bombs: ${myPlayer.bombs ?? 1}`),
+        h('div', {
+          class: `stat stat-flames ${myPlayer._prevFlames !== undefined && myPlayer._prevFlames !== myPlayer.flames ? 'value-changed' : ''}`,
+          onanimationend: () => { myPlayer._prevFlames = myPlayer.flames; }
+        }, `🔥 Flames: ${myPlayer.flames ?? 1}`),
+        h('div', {
+          class: `stat stat-speed ${myPlayer._prevSpeed !== undefined && myPlayer._prevSpeed !== myPlayer.speed ? 'value-changed' : ''}`,
+          onanimationend: () => { myPlayer._prevSpeed = myPlayer.speed; }
+        }, `⚡ Speed: ${myPlayer.speed ? myPlayer.speed.toFixed(1) : 1}`)
       ),
 
-     
+
       h('h3', {}, 'Players'),
       h('div', { class: 'player-list' },
         ...playerArray.map((player, index) => {
@@ -195,7 +224,7 @@ function GameScreen() {
           );
         })
       ),
-      
+
       h('div', { class: 'chat' },
         h('h4', {}, 'Chat'),
         h('div', { class: 'chat-messages' },
@@ -218,7 +247,7 @@ function GameScreen() {
           // h('button', { type: 'submit', class: 'btn' }, 'Send')
         )
       ),
-      
+
       h('div', { class: 'controls' },
         h('h4', {}, 'Controls'),
         h('p', {}, 'Arrow Keys : Move'),
@@ -230,20 +259,20 @@ function GameScreen() {
 
 function GameOverScreen() {
   const state = getState();
-  
+
   return h('div', { class: 'screen' },
 
     h('h1', {}, 'Game Over!'),
 
-    state.winner ? 
+    state.winner ?
 
       h('h2', {}, `🎉 ${state.winner.nickname} Wins! 🎉`) :
 
-     h('h2', {}, 'No Winner'),
-   
-      h('p', {}, '🏆 Go back to lobby champion! 🏆'),
-   
-    h('button', { 
+      h('h2', {}, 'No Winner'),
+
+    h('p', {}, '🏆 Go back to lobby champion! 🏆'),
+
+    h('button', {
       class: 'btn',
       onclick: () => window.location.reload()            ///////////////
     }, 'Play Again')
@@ -268,15 +297,15 @@ function appHandleKeyUp(e) {
 
 function App() {
   const state = getState();
-  
+
   // Add keyboard event handlers to the root element
   const appProps = {
     onkeydown: appHandleKeyDown,
     onkeyup: appHandleKeyUp,
     tabindex: '0', // Make div focusable
-     style: 'outline: none;' // Remove focus outline
+    style: 'outline: none;' // Remove focus outline
   };
-  
+
   let content;
   switch (state.screen) {
     case 'nickname':
@@ -294,33 +323,42 @@ function App() {
     default:
       content = h('div', {}, 'Loading...');
   }
-  
+
   return h('div', appProps, content);
 }
 
 function gameLoop(currentTime) {
-
-  if (currentTime - lastFrameTime >= FRAME_TIME) {
-    renderApp(App, document.getElementById('app'));
+  if (!lastFrameTime) {
     lastFrameTime = currentTime;
   }
-  
+
+  const deltaTime = currentTime - lastFrameTime;
+
+  if (deltaTime >= FRAME_TIME) {
+    // Calculate FPS and skip frames if needed
+    const framesElapsed = Math.floor(deltaTime / FRAME_TIME);
+    if (framesElapsed < 3) { // Only render if we haven't skipped too many frames
+      renderApp(App, document.getElementById('app'));
+    }
+    lastFrameTime = currentTime - (deltaTime % FRAME_TIME);
+  }
+
   animationId = requestAnimationFrame(gameLoop);
 }
 
 function init() {
-  
+
   initRouter();
   initGame();
   initInput();
-  
+
   onGameUpdate(() => {
     renderApp(App, document.getElementById('app'));
   });
-  
+
   // Start game loop
   animationId = requestAnimationFrame(gameLoop);
-  
+
   // Focus the app for keyboard input
   setTimeout(() => {
     const appElement = document.getElementById('app');
