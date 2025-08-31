@@ -67,23 +67,24 @@ const io = socketIo(server, {
 
 // Serve static files from frontend
 //app.use(express.static(path.join(__dirname, '../frontend')));
-
+let playerCount = 0;
+const MAX_PLAYERS = 4;
+const MIN_PLAYERS = 2;
+const WAITING_TIME = 20; // 20 seconds
+const COUNTDOWN_TIME = 10000; // 10 seconds
 // Game state
 let gameState = {
   players: {},
   gameStarted: false,
   waitingTimer: null,
   gameTimer: null,
+  waitingTimeCounter: null,
+  waitingTime: WAITING_TIME,
   map: [],
   bombs: [],
   powerups: []
 };
 
-let playerCount = 0;
-const MAX_PLAYERS = 4;
-const MIN_PLAYERS = 2;
-const WAITING_TIME = 20000; // 20 seconds
-const COUNTDOWN_TIME = 10000; // 10 seconds
 
 // Initialize map (15x13 grid)
 function initializeMap() {
@@ -182,16 +183,27 @@ io.on('connection', (socket) => {
     };
 
     socket.emit('joined', { playerId: socket.id, playerCount });
-    io.emit('playerJoined', { playerCount, players: gameState.players });
+    io.emit('playerJoined', { playerCount, players: gameState.players, waitingTime: gameState.waitingTime });
 
-    // Start waiting timer if we have min players
-    if (playerCount >= MIN_PLAYERS && !gameState.waitingTimer && !gameState.gameStarted) {
-      gameState.waitingTimer = setTimeout(() => {
-        io.emit('countdown', { time: 10 });
-        gameState.gameTimer = setTimeout(() => {
-          startGame();
-        }, COUNTDOWN_TIME);
-      }, WAITING_TIME);
+    // Start waiting time counter if we have min players and it's not already running
+    if (playerCount >= MIN_PLAYERS && !gameState.waitingTimeCounter && !gameState.gameStarted) {
+      gameState.waitingTime = WAITING_TIME; // Reset to initial waiting time
+      io.emit('updateWaitingTime', { waitingTime: gameState.waitingTime });
+      
+      gameState.waitingTimeCounter = setInterval(() => {
+        gameState.waitingTime--;
+        io.emit('updateWaitingTime', { waitingTime: gameState.waitingTime });
+        
+        // When waiting time ends, start the game countdown
+        if (gameState.waitingTime <= 0) {
+          clearInterval(gameState.waitingTimeCounter);
+          gameState.waitingTimeCounter = null;
+          io.emit('countdown', { time: 10 });
+          gameState.gameTimer = setTimeout(() => {
+            startGame();
+          }, COUNTDOWN_TIME);
+        }
+      }, 1000);
     }
 
     // Start countdown immediately if max players
@@ -317,10 +329,22 @@ io.on('connection', (socket) => {
       delete gameState.players[socket.id];
       playerCount--;
       
+      // Clear waiting time counter if less than 2 players
+      if (playerCount < MIN_PLAYERS && gameState.waitingTimeCounter) {
+        clearInterval(gameState.waitingTimeCounter);
+        gameState.waitingTimeCounter = null;
+        gameState.waitingTime = WAITING_TIME;
+        io.emit('updateWaitingTime', { waitingTime: gameState.waitingTime });
+      }
+      
       if (playerCount === 0) {
         resetGame();
       } else {
-        io.emit('playerLeft', { playerCount, players: gameState.players });
+        io.emit('playerLeft', { 
+          playerCount, 
+          players: gameState.players,
+          waitingTime: gameState.waitingTime 
+        });
       }
     }
   });
