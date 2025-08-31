@@ -7,7 +7,6 @@ export function NicknameScreenContainer() {
     const handleJoin = (nickname) => {
         store.dispatch({ type: 'SET_NICKNAME', payload: nickname });
         send({ type: 'JOIN_GAME', payload: { nickname } });
-        router.navigate('#/lobby');
     };
 
     return NicknameScreen({ onJoin: handleJoin });
