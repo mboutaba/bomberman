@@ -60,9 +60,15 @@ function WaitingScreen() {
     h('div', { class: 'waiting-info' },
       h('h1', {}, 'Waiting for Players'),
       h('p', {}, `Players: ${state.playerCount}/4`),
-      state.countdown > 0 ? 
-        h('div', { class: 'countdown' }, state.countdown) :
-        h('p', {}, 'Waiting for more players...'),
+      state.waitingTime > 0 && state.playerCount >= 2 ? [
+        h('div', { class: 'waiting-time' }, `Waiting time: ${state.waitingTime}s`)
+      ] : [],
+      state.countdown > 0 ? [
+        h('div', { class: 'countdown' }, `Game starts in: ${state.countdown}s`)
+      ] : 
+      state.playerCount < 2 ? [
+        h('p', {}, 'Waiting for more players...')
+      ] : [],
       h('div', { class: 'player-list' },
         Object.values(state.players).map((player, index) =>
           h('div', { key: player.id, class: 'player-info' },

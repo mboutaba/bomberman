@@ -15,6 +15,7 @@ const [getGameState, setGameState] = useState('gameState', {
   powerups: [],
   explosions: [],
   gameStarted: false,
+  waitingTime: 0,
   countdown: 0,
   chatMessages: [],
   winner: null
@@ -43,7 +44,17 @@ export function initGame() {
     setGameState({
       ...state,
       playerCount: data.playerCount,
-      players: data.players
+      players: data.players,
+      waitingTime: data.waitingTime
+    });
+    updateUI();
+  });
+
+  socket.on('updateWaitingTime', (data) => {
+    const state = getGameState();
+    setGameState({
+      ...state,
+      waitingTime: data.waitingTime
     });
     updateUI();
   });
@@ -253,6 +264,8 @@ function updateUI() {
 let keys = {};
 
 export function handleKeyDown(e) {
+  if (!e || !e.key) return;
+  
   keys[e.key.toLowerCase()] = true;
   
   const state = getGameState();
@@ -288,6 +301,8 @@ export function handleKeyDown(e) {
 }
 
 export function handleKeyUp(e) {
+  if (!e || !e.key) return;
+  
   keys[e.key.toLowerCase()] = false;
 }
 

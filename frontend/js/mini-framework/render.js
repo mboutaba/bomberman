@@ -3,8 +3,18 @@ let currentVDOM = null;
 let rootElement = null;
 
 function createElement(vnode) {
-  if (typeof vnode === "string") {
-    return document.createTextNode(vnode);
+  // Handle null, undefined, or boolean values
+  if (vnode == null || typeof vnode === "boolean") {
+    return document.createTextNode("");
+  }
+
+  if (typeof vnode === "string" || typeof vnode === "number") {
+    return document.createTextNode(vnode.toString());
+  }
+
+  if (!vnode.type) {
+    console.warn("Invalid vnode:", vnode);
+    return document.createTextNode("");
   }
 
   const el = document.createElement(vnode.type);
