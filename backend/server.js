@@ -92,6 +92,8 @@ const MIN_PLAYERS = 2;
 const WAITING_TIME = 20; // 20 seconds
 const COUNTDOWN_TIME = 10000; // 10 seconds
 
+let nextColorIndex = 0;
+
 // Game state
 let gameState = {
   players: {},
@@ -180,6 +182,7 @@ function resetGame() {
     powerups: []
   };
   playerCount = 0;
+  nextColorIndex = 0;
 }
 
 io.on('connection', (socket) => {
@@ -187,10 +190,15 @@ io.on('connection', (socket) => {
 
   socket.on('joinGame', (nickname) => {
     // Prevent joining if game started or during 10s countdown
-    if (playerCount >= MAX_PLAYERS || gameState.gameStarted || gameState.gameTimer) {
-      socket.emit('joinError', 'Game is full or already started');
-      return;
-    }
+    if (playerCount >= MAX_PLAYERS) {
+    socket.emit('joinError', 'Game is full');
+    return;
+  }
+  // Prevent joining if game started or during 10s countdown
+  if (gameState.gameStarted || gameState.gameTimer) {
+    socket.emit('joinError', 'Game already started');
+    return;
+  }
 
     playerCount++;
     gameState.players[socket.id] = {
@@ -202,8 +210,11 @@ io.on('connection', (socket) => {
       bombs: 1,
       flames: 1,
       speed: 1,
-      alive: true
+      alive: true,
+      colorIndex: nextColorIndex
     };
+
+    nextColorIndex = (nextColorIndex + 1) % MAX_PLAYERS;
 
     socket.emit('joined', { playerId: socket.id, playerCount });
     io.emit('playerJoined', { playerCount, players: gameState.players, waitingTime: gameState.waitingTime });
@@ -353,12 +364,18 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
-    if (gameState.players[socket.id]) {
+   if (gameState.players[socket.id]) {
+    // If game is started, just mark as dead
+    if (gameState.gameStarted) {
+      gameState.players[socket.id].alive = false;
+    } else {
+      // Only remove from players if game hasn't started
       delete gameState.players[socket.id];
       playerCount--;
-      
+    }
 
-       if (gameState.gameStarted) {
+    // Win condition check (unchanged)
+    if (gameState.gameStarted) {
       const alivePlayers = Object.values(gameState.players).filter(p => p.alive);
       if (alivePlayers.length === 1) {
         io.emit('gameOver', { winner: alivePlayers[0] });
@@ -372,15 +389,16 @@ io.on('connection', (socket) => {
       }
     }
 
-    
+    // Waiting logic (unchanged)
+    if (!gameState.gameStarted) {
       // Clear waiting time counter if less than 2 players
+      playerCount = Object.values(gameState.players).length;
       if (playerCount < MIN_PLAYERS && gameState.waitingTimeCounter) {
         clearInterval(gameState.waitingTimeCounter);
         gameState.waitingTimeCounter = null;
         gameState.waitingTime = WAITING_TIME;
         io.emit('updateWaitingTime', { waitingTime: gameState.waitingTime });
       }
-      
       if (playerCount === 0) {
         resetGame();
       } else {
@@ -391,6 +409,7 @@ io.on('connection', (socket) => {
         });
       }
     }
+  }
   });
 });
 

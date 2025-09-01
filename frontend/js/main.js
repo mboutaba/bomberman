@@ -135,12 +135,11 @@ function GameScreen() {
       ),
 
       // Players
-      ...playerArray
-        .filter(player => player.alive)
-        .map((player, index) =>
+      ...Object.values(state.players)
+        .map(player =>
           h('div', {
-            key: `player-${player.id}`,
-            class: `player player-${index}`,
+            key: player.id,
+            class: `player player-${player.colorIndex}` + (player.alive ? '' : ' player-dead'),
             style: `left: ${player.x * 32}px; top: ${player.y * 32}px;`
           })
         ),
@@ -207,22 +206,23 @@ function GameScreen() {
 
       h('h3', {}, 'Players'),
       h('div', { class: 'player-list' },
-        ...playerArray.map((player, index) => {
-          const isMe = player.id === state.myPlayerId;
-          return h('div', {
-            key: player.id,
-            class: 'player-info player-stats',
-            style: isMe ? 'border: 2px solid #007bff; padding: 8px; margin: 4px 0; border-radius: 4px;' : 'padding: 8px; margin: 4px 0;'
-          },
-            h('div', { class: 'player-header' },
-              h('span', { class: `player-${index}` }, '●'),
-              ' ',
-              player.nickname,
-              isMe ? ' (You)' : '',
-              !player.alive ? ' [DEAD]' : ''
-            ),
-          );
-        })
+        ...playerArray
+          .filter(player => player.alive) // Only show alive players
+          .map((player) => {
+            const isMe = player.id === state.myPlayerId;
+            return h('div', {
+              key: player.id,
+              class: 'player-info player-stats',
+              style: isMe ? 'border: 2px solid #007bff; padding: 8px; margin: 4px 0; border-radius: 4px;' : 'padding: 8px; margin: 4px 0;'
+            },
+              h('div', { class: 'player-header' },
+                h('span', { class: `player-${player.colorIndex}` }, '●'),
+                ' ',
+                player.nickname,
+                isMe ? ' (You)' : ''
+              ),
+            );
+          })
       ),
 
       h('div', { class: 'chat' },
