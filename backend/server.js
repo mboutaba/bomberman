@@ -89,8 +89,8 @@ const io = socketIo(server, {
 let playerCount = 0;
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 2;
-const WAITING_TIME = 2; // 20 seconds
-const COUNTDOWN_TIME = 1000; // 10 seconds
+const WAITING_TIME = 20; // 20 seconds
+const COUNTDOWN_TIME = 10000; // 10 seconds
 
 // Game state
 let gameState = {
@@ -186,7 +186,8 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   socket.on('joinGame', (nickname) => {
-    if (playerCount >= MAX_PLAYERS || gameState.gameStarted) {
+    // Prevent joining if game started or during 10s countdown
+    if (playerCount >= MAX_PLAYERS || gameState.gameStarted || gameState.gameTimer) {
       socket.emit('joinError', 'Game is full or already started');
       return;
     }
@@ -208,14 +209,14 @@ io.on('connection', (socket) => {
     io.emit('playerJoined', { playerCount, players: gameState.players, waitingTime: gameState.waitingTime });
 
     // Start waiting time counter if we have min players and it's not already running
-    if (playerCount >= MIN_PLAYERS && !gameState.waitingTimeCounter && !gameState.gameStarted) {
+    if (playerCount >= MIN_PLAYERS && !gameState.waitingTimeCounter && !gameState.gameStarted && !gameState.gameTimer) {
       gameState.waitingTime = WAITING_TIME; // Reset to initial waiting time
       io.emit('updateWaitingTime', { waitingTime: gameState.waitingTime });
-      
+
       gameState.waitingTimeCounter = setInterval(() => {
         gameState.waitingTime--;
         io.emit('updateWaitingTime', { waitingTime: gameState.waitingTime });
-        
+
         // When waiting time ends, start the game countdown
         if (gameState.waitingTime <= 0) {
           clearInterval(gameState.waitingTimeCounter);
@@ -223,17 +224,22 @@ io.on('connection', (socket) => {
           io.emit('countdown', { time: 10 });
           gameState.gameTimer = setTimeout(() => {
             startGame();
+            gameState.gameTimer = null;
           }, COUNTDOWN_TIME);
         }
       }, 1000);
     }
 
-    // Start countdown immediately if max players
+    // If 4th player joins during waiting, immediately start 10s countdown
     if (playerCount === MAX_PLAYERS && !gameState.gameStarted) {
-      if (gameState.waitingTimer) clearTimeout(gameState.waitingTimer);
+      if (gameState.waitingTimeCounter) {
+        clearInterval(gameState.waitingTimeCounter);
+        gameState.waitingTimeCounter = null;
+      }
       io.emit('countdown', { time: 10 });
       gameState.gameTimer = setTimeout(() => {
         startGame();
+        gameState.gameTimer = null;
       }, COUNTDOWN_TIME);
     }
   });
