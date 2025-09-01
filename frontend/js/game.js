@@ -167,12 +167,28 @@ export function initGame() {
   socket.on('playerStatsUpdate', (data) => {
     const state = getGameState();
     if (state.players[data.playerId]) {
+      // Check for speed powerup
+      const prevSpeed = state.players[data.playerId].speed;
       // Update specific player stats
       state.players[data.playerId].bombs = data.stats.bombs;
       state.players[data.playerId].flames = data.stats.flames;
       state.players[data.playerId].speed = data.stats.speed;
       state.players[data.playerId].lives = data.stats.lives;
-      
+
+      // If this is the local player and speed increased, decrease throttle
+      if (data.playerId === state.myPlayerId && data.stats.speed > prevSpeed) {
+        moveThrottle = Math.max(25, moveThrottle - 25);
+        // If currently moving, restart interval with new throttle
+        if (moveInterval) {
+          stopMoving();
+          // Find which key is pressed
+          const dirKey = Object.keys(keys).find(k => keys[k] && ['arrowup','arrowdown','arrowleft','arrowright'].includes(k));
+          if (dirKey) {
+            startMoving(dirKey.replace('arrow', '').toLowerCase());
+          }
+        }
+      }
+
       setGameState(state);
       updateUI();
     }
@@ -299,7 +315,33 @@ function updateUI() {
 let keys = {};
 
 let lastMoveTime = 0;
-const MOVE_THROTTLE = 50;
+let baseMoveThrottle = 150; // Initial throttle
+let moveThrottle = baseMoveThrottle;
+let moveInterval = null;
+
+function startMoving(direction) {
+  if (moveInterval) return; // Don't start if already moving
+  
+  // Move immediately
+  movePlayer(direction);
+  lastMoveTime = performance.now();
+  
+  // Setup continuous movement
+  moveInterval = setInterval(() => {
+    const currentTime = performance.now();
+    if (currentTime - lastMoveTime >= moveThrottle) {
+      movePlayer(direction);
+      lastMoveTime = currentTime;
+    }
+  }, moveThrottle);
+}
+
+function stopMoving() {
+  if (moveInterval) {
+    clearInterval(moveInterval);
+    moveInterval = null;
+  }
+}
 
 export function handleKeyDown(e) {
   if (!e || !e.key) return;
@@ -312,18 +354,13 @@ export function handleKeyDown(e) {
   const state = getGameState();
   if (state.screen !== 'game' || !state.gameStarted) return;
   
-  const currentTime = performance.now();
-  
   switch (key) {
     case 'arrowup':
     case 'arrowdown':
     case 'arrowleft':
     case 'arrowright':
       e.preventDefault();
-      if (currentTime - lastMoveTime >= MOVE_THROTTLE) {
-        movePlayer(key.replace('arrow', '').toLowerCase());
-        lastMoveTime = currentTime;
-      }
+      startMoving(key.replace('arrow', '').toLowerCase());
       break;
     case ' ':
       e.preventDefault();
@@ -335,7 +372,13 @@ export function handleKeyDown(e) {
 export function handleKeyUp(e) {
   if (!e || !e.key) return;
   
-  keys[e.key.toLowerCase()] = false;
+  const key = e.key.toLowerCase();
+  keys[key] = false;
+  
+  // Stop continuous movement if it's an arrow key
+  if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+    stopMoving();
+  }
 }
 
 export function isKeyPressed(key) {

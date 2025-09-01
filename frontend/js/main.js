@@ -226,29 +226,6 @@ function GameScreen() {
           })
       ),
 
-      h('div', { class: 'chat' },
-        h('h4', {}, 'Chat'),
-        h('div', { class: 'chat-messages' },
-          ...state.chatMessages.slice(-20).map((msg, index) =>
-            h('div', { key: index, class: 'message' },
-              h('strong', {}, msg.nickname + ': '),
-              msg.message
-            )
-          )
-        ),
-        h('form', { class: 'chat-input', onsubmit: handleChatSubmit },
-          h('input', {
-            type: 'text',
-            name: 'message',
-            placeholder: 'Type message...',
-            maxlength: '100',
-            onfocus: () => { chatInputFocused = true; },
-            onblur: () => { chatInputFocused = false; }
-          }),
-          // h('button', { type: 'submit', class: 'btn' }, 'Send')
-        )
-      ),
-
       h('div', { class: 'controls' },
         h('h4', {}, 'Controls'),
         h('p', {}, 'Arrow Keys : Move'),

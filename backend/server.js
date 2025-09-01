@@ -90,8 +90,8 @@ const io = socketIo(server, {
 let playerCount = 0;
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 2;
-const WAITING_TIME = 20; // 20 seconds
-const COUNTDOWN_TIME = 10000; // 10 seconds
+const WAITING_TIME = 6; // 20 seconds
+const COUNTDOWN_TIME = 5000; // 10 seconds
 
 let nextColorIndex = 0;
 
@@ -426,6 +426,8 @@ io.on('connection', (socket) => {
             players: gameState.players,
             waitingTime: gameState.waitingTime
           });
+          socket.emit('left', { playerCount });// Notify the disconnected player
+          socket.disconnect(true);
         }
       }
     }
