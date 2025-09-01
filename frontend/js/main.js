@@ -181,55 +181,55 @@ function GameScreen() {
       )
     ),
 
-    // Sidebar
-    h('div', { class: 'sidebar' },
-
-      myPlayer && h('div', { class: 'my-stats' },
-        h('h3', {}, 'Your Stats'),
-        h('div', {
-          class: `stat stat-lives ${myPlayer._prevLives !== undefined && myPlayer._prevLives !== myPlayer.lives ? 'value-changed' : ''}`,
-          onanimationend: () => { myPlayer._prevLives = myPlayer.lives; }
-        }, `❤️ Lives: ${myPlayer.lives ?? 0}`),
-        h('div', {
-          class: `stat stat-bombs ${myPlayer._prevBombs !== undefined && myPlayer._prevBombs !== myPlayer.bombs ? 'value-changed' : ''}`,
-          onanimationend: () => { myPlayer._prevBombs = myPlayer.bombs; }
-        }, `💣 Bombs: ${myPlayer.bombs ?? 1}`),
-        h('div', {
-          class: `stat stat-flames ${myPlayer._prevFlames !== undefined && myPlayer._prevFlames !== myPlayer.flames ? 'value-changed' : ''}`,
-          onanimationend: () => { myPlayer._prevFlames = myPlayer.flames; }
-        }, `🔥 Flames: ${myPlayer.flames ?? 1}`),
-        h('div', {
-          class: `stat stat-speed ${myPlayer._prevSpeed !== undefined && myPlayer._prevSpeed !== myPlayer.speed ? 'value-changed' : ''}`,
-          onanimationend: () => { myPlayer._prevSpeed = myPlayer.speed; }
-        }, `🚀 Speed: ${myPlayer.speed ? myPlayer.speed.toFixed(1) : 1}`)
+    // Sidebar split into left and right
+    h('div', { class: 'sidebar-container' },
+      h('div', { class: 'sidebar-left' },
+        myPlayer && h('span', { class: 'my-stats' },
+          h('h3', {}, 'Your Stats'),
+          h('div', {
+            class: `stat stat-lives ${myPlayer._prevLives !== undefined && myPlayer._prevLives !== myPlayer.lives ? 'value-changed' : ''}`,
+            onanimationend: () => { myPlayer._prevLives = myPlayer.lives; }
+          }, `❤️ Lives: ${myPlayer.lives ?? 0}`),
+          h('div', {
+            class: `stat stat-bombs ${myPlayer._prevBombs !== undefined && myPlayer._prevBombs !== myPlayer.bombs ? 'value-changed' : ''}`,
+            onanimationend: () => { myPlayer._prevBombs = myPlayer.bombs; }
+          }, `💣 Bombs: ${myPlayer.bombs ?? 1}`),
+          h('div', {
+            class: `stat stat-flames ${myPlayer._prevFlames !== undefined && myPlayer._prevFlames !== myPlayer.flames ? 'value-changed' : ''}`,
+            onanimationend: () => { myPlayer._prevFlames = myPlayer.flames; }
+          }, `🔥 Flames: ${myPlayer.flames ?? 1}`),
+          h('div', {
+            class: `stat stat-speed ${myPlayer._prevSpeed !== undefined && myPlayer._prevSpeed !== myPlayer.speed ? 'value-changed' : ''}`,
+            onanimationend: () => { myPlayer._prevSpeed = myPlayer.speed; }
+          }, `🚀 Speed: ${myPlayer.speed ? myPlayer.speed.toFixed(1) : 1}`)
+        ),
+        h('div', { class: 'controls' },
+          h('h4', {}, 'Controls'),
+          h('p', {}, 'Arrow Keys : Move'),
+          h('p', {}, 'Space : Place Bomb')
+        )
       ),
-
-
-      h('h3', {}, 'Players'),
-      h('div', { class: 'player-list' },
-        ...playerArray
-          .filter(player => player.alive) // Only show alive players
-          .map((player) => {
-            const isMe = player.id === state.myPlayerId;
-            return h('div', {
-              key: player.id,
-              class: 'player-info player-stats',
-              style: isMe ? 'border: 2px solid #007bff; padding: 8px; margin: 4px 0; border-radius: 4px;' : 'padding: 8px; margin: 4px 0;'
-            },
-              h('div', { class: 'player-header' },
-                h('span', { class: `player-${player.colorIndex}` }, '●'),
-                ' ',
-                player.nickname,
-                isMe ? ' (You)' : ''
-              ),
-            );
-          })
-      ),
-
-      h('div', { class: 'controls' },
-        h('h4', {}, 'Controls'),
-        h('p', {}, 'Arrow Keys : Move'),
-        h('p', {}, 'Space : Place Bomb')
+      h('div', { class: 'sidebar-right' },
+        h('h3', {}, 'Players'),
+        h('span', { class: 'player-list' },
+          ...playerArray
+            .filter(player => player.alive) // Only show alive players
+            .map((player) => {
+              const isMe = player.id === state.myPlayerId;
+              return h('div', {
+                key: player.id,
+                class: 'player-info player-stats',
+                style: isMe ? 'border: 2px solid #007bff; padding: 8px; margin: 4px 0; border-radius: 4px;' : 'padding: 8px; margin: 4px 0;'
+              },
+                h('div', { class: 'player-header' },
+                  h('span', { class: `player-${player.colorIndex}` }, '●'),
+                  ' ',
+                  player.nickname,
+                  isMe ? ' (You)' : ''
+                ),
+              );
+            })
+        )
       )
     )
   );
