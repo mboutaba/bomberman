@@ -211,7 +211,7 @@ io.on('connection', (socket) => {
     setTimeout(() => {
       socket.emit('clearJoinError');
     }, 3000);
-    
+
     playerCount++;
     gameState.players[socket.id] = {
       id: socket.id,
