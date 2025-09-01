@@ -90,8 +90,8 @@ const io = socketIo(server, {
 let playerCount = 0;
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 2;
-const WAITING_TIME = 6; // 20 seconds
-const COUNTDOWN_TIME = 5000; // 10 seconds
+const WAITING_TIME = 20; // 20 seconds
+const COUNTDOWN_TIME = 10000; // 10 seconds
 
 let nextColorIndex = 0;
 
@@ -155,6 +155,17 @@ function getStartingPosition(playerIndex) {
 }
 
 function startGame() {
+
+   // If only one player, declare them winner and reset
+  const playerIds = Object.keys(gameState.players);
+  if (playerIds.length === 1) {
+    const winner = gameState.players[playerIds[0]];
+    io.emit('gameStart', gameState); // Optionally show the game started
+    io.emit('gameOver', { winner });
+    setTimeout(resetGame, 5000);
+    return;
+  }
+  
   gameState.gameStarted = true;
   gameState.map = initializeMap();
 
