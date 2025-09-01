@@ -3,7 +3,8 @@ const socketIo = require('socket.io');
 const path = require('path');
 const fs = require('fs');
 
-
+// Store active nicknames
+const activeNicknames = new Set();
 
 
 const server = http.createServer((req, res) => {
@@ -35,7 +36,7 @@ const server = http.createServer((req, res) => {
     });
   }
 
-    // Serve styles.css from the frontend directory
+  // Serve styles.css from the frontend directory
   else if (req.url === '/styles.css') {
     const filePath = path.join(__dirname, '..', 'frontend', 'styles.css');
     fs.readFile(filePath, 'utf-8', (err, data) => {
@@ -48,7 +49,7 @@ const server = http.createServer((req, res) => {
       }
     });
   }
-  
+
   // Serve image files from the assets directory
   else if (req.url.startsWith('/assets/') && (req.url.endsWith('.png') || req.url.endsWith('.jpg') || req.url.endsWith('.gif'))) {
     const filePath = path.join(__dirname, '..', 'frontend', req.url);
@@ -156,7 +157,7 @@ function getStartingPosition(playerIndex) {
 function startGame() {
   gameState.gameStarted = true;
   gameState.map = initializeMap();
-  
+
   // Position players
   let playerIndex = 0;
   Object.keys(gameState.players).forEach(id => {
@@ -167,7 +168,7 @@ function startGame() {
     gameState.players[id].alive = true; // Reset alive status
     playerIndex++;
   });
-  
+
   io.emit('gameStart', gameState);
 }
 
@@ -183,6 +184,8 @@ function resetGame() {
   };
   playerCount = 0;
   nextColorIndex = 0;
+  // Clear all active nicknames
+  activeNicknames.clear();
 }
 
 io.on('connection', (socket) => {
@@ -191,15 +194,24 @@ io.on('connection', (socket) => {
   socket.on('joinGame', (nickname) => {
     // Prevent joining if game started or during 10s countdown
     if (playerCount >= MAX_PLAYERS) {
-    socket.emit('joinError', 'Game is full');
-    return;
-  }
-  // Prevent joining if game started or during 10s countdown
-  if (gameState.gameStarted || gameState.gameTimer) {
-    socket.emit('joinError', 'Game already started');
-    return;
-  }
+      socket.emit('joinError', 'Game is full');
+      return;
+    }
+    // Prevent joining if game started or during 10s countdown
+    if (gameState.gameStarted || gameState.gameTimer) {
+      socket.emit('joinError', 'Game already started');
+      return;
+    }
+    // Check if nickname is already in use
+    if (activeNicknames.has(nickname)) {
+      socket.emit('joinError', 'Nickname is already taken');
 
+      return;
+    }
+    setTimeout(() => {
+      socket.emit('clearJoinError');
+    }, 3000);
+    
     playerCount++;
     gameState.players[socket.id] = {
       id: socket.id,
@@ -215,6 +227,9 @@ io.on('connection', (socket) => {
     };
 
     nextColorIndex = (nextColorIndex + 1) % MAX_PLAYERS;
+
+    // Add nickname to active nicknames set
+    activeNicknames.add(nickname);
 
     socket.emit('joined', { playerId: socket.id, playerCount });
     io.emit('playerJoined', { playerCount, players: gameState.players, waitingTime: gameState.waitingTime });
@@ -257,22 +272,22 @@ io.on('connection', (socket) => {
 
   socket.on('playerMove', (data) => {
     if (!gameState.gameStarted || !gameState.players[socket.id]) return;
-    
+
     const player = gameState.players[socket.id];
     const { direction } = data;
     let { x, y } = player;
-    
+
     switch (direction) {
       case 'up': y -= 1; break;
       case 'down': y += 1; break;
       case 'left': x -= 1; break;
       case 'right': x += 1; break;
     }
-    
+
     // Check bounds and collisions
-    if (x >= 0 && x < 15 && y >= 0 && y < 13 && 
-        (gameState.map[y][x] === 'empty' || gameState.map[y][x] === 'powerup')) {
-      
+    if (x >= 0 && x < 15 && y >= 0 && y < 13 &&
+      (gameState.map[y][x] === 'empty' || gameState.map[y][x] === 'powerup')) {
+
       // Check powerup pickup
       if (gameState.map[y][x] === 'powerup') {
         const powerup = gameState.powerups.find(p => p.x === x && p.y === y);
@@ -280,15 +295,15 @@ io.on('connection', (socket) => {
           applyPowerup(player, powerup.type);
           gameState.powerups = gameState.powerups.filter(p => !(p.x === x && p.y === y));
           gameState.map[y][x] = 'empty';
-          
+
           // Emit powerup collected event with updated player stats
-          io.emit('powerupCollected', { 
-            playerId: socket.id, 
+          io.emit('powerupCollected', {
+            playerId: socket.id,
             powerupType: powerup.type,
             x: x,
             y: y
           });
-          
+
           // Emit updated player stats
           io.emit('playerStatsUpdate', {
             playerId: socket.id,
@@ -299,7 +314,7 @@ io.on('connection', (socket) => {
               lives: player.lives
             }
           });
-          
+
           // Send updated game state to all players
           io.emit('gameStateUpdate', {
             players: gameState.players,
@@ -308,7 +323,7 @@ io.on('connection', (socket) => {
           });
         }
       }
-      
+
       player.x = x;
       player.y = y;
       io.emit('playerMoved', { playerId: socket.id, x, y });
@@ -317,10 +332,10 @@ io.on('connection', (socket) => {
 
   socket.on('placeBomb', () => {
     if (!gameState.gameStarted || !gameState.players[socket.id] || !gameState.players[socket.id].alive) return;
-    
+
     const player = gameState.players[socket.id];
     const existingBomb = gameState.bombs.find(b => b.x === player.x && b.y === player.y);
-    
+
     if (!existingBomb && player.bombs > 0) {
       const bomb = {
         id: Date.now(),
@@ -329,12 +344,12 @@ io.on('connection', (socket) => {
         playerId: socket.id,
         timer: 3000 // 3 seconds
       };
-      
+
       gameState.bombs.push(bomb);
       player.bombs--;
-      
+
       io.emit('bombPlaced', bomb);
-      
+
       // Emit updated player stats immediately when bomb is placed
       io.emit('playerStatsUpdate', {
         playerId: socket.id,
@@ -345,7 +360,7 @@ io.on('connection', (socket) => {
           lives: player.lives
         }
       });
-      
+
       setTimeout(() => {
         explodeBomb(bomb);
       }, bomb.timer);
@@ -364,52 +379,54 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
-   if (gameState.players[socket.id]) {
-    // If game is started, just mark as dead
-    if (gameState.gameStarted) {
-      gameState.players[socket.id].alive = false;
-    } else {
-      // Only remove from players if game hasn't started
-      delete gameState.players[socket.id];
-      playerCount--;
-    }
-
-    // Win condition check (unchanged)
-    if (gameState.gameStarted) {
-      const alivePlayers = Object.values(gameState.players).filter(p => p.alive);
-      if (alivePlayers.length === 1) {
-        io.emit('gameOver', { winner: alivePlayers[0] });
-        setTimeout(resetGame, 5000);
-        return;
-      }
-      if (alivePlayers.length === 0) {
-        io.emit('gameOver', { winner: null });
-        setTimeout(resetGame, 5000);
-        return;
-      }
-    }
-
-    // Waiting logic (unchanged)
-    if (!gameState.gameStarted) {
-      // Clear waiting time counter if less than 2 players
-      playerCount = Object.values(gameState.players).length;
-      if (playerCount < MIN_PLAYERS && gameState.waitingTimeCounter) {
-        clearInterval(gameState.waitingTimeCounter);
-        gameState.waitingTimeCounter = null;
-        gameState.waitingTime = WAITING_TIME;
-        io.emit('updateWaitingTime', { waitingTime: gameState.waitingTime });
-      }
-      if (playerCount === 0) {
-        resetGame();
+    if (gameState.players[socket.id]) {
+      // Remove nickname from active nicknames
+      activeNicknames.delete(gameState.players[socket.id].nickname);
+      // If game is started, just mark as dead
+      if (gameState.gameStarted) {
+        gameState.players[socket.id].alive = false;
       } else {
-        io.emit('playerLeft', { 
-          playerCount, 
-          players: gameState.players,
-          waitingTime: gameState.waitingTime 
-        });
+        // Only remove from players if game hasn't started
+        delete gameState.players[socket.id];
+        playerCount--;
+      }
+
+      // Win condition check (unchanged)
+      if (gameState.gameStarted) {
+        const alivePlayers = Object.values(gameState.players).filter(p => p.alive);
+        if (alivePlayers.length === 1) {
+          io.emit('gameOver', { winner: alivePlayers[0] });
+          setTimeout(resetGame, 5000);
+          return;
+        }
+        if (alivePlayers.length === 0) {
+          io.emit('gameOver', { winner: null });
+          setTimeout(resetGame, 5000);
+          return;
+        }
+      }
+
+      // Waiting logic (unchanged)
+      if (!gameState.gameStarted) {
+        // Clear waiting time counter if less than 2 players
+        playerCount = Object.values(gameState.players).length;
+        if (playerCount < MIN_PLAYERS && gameState.waitingTimeCounter) {
+          clearInterval(gameState.waitingTimeCounter);
+          gameState.waitingTimeCounter = null;
+          gameState.waitingTime = WAITING_TIME;
+          io.emit('updateWaitingTime', { waitingTime: gameState.waitingTime });
+        }
+        if (playerCount === 0) {
+          resetGame();
+        } else {
+          io.emit('playerLeft', {
+            playerCount,
+            players: gameState.players,
+            waitingTime: gameState.waitingTime
+          });
+        }
       }
     }
-  }
   });
 });
 
@@ -430,11 +447,11 @@ function applyPowerup(player, type) {
 
 function explodeBomb(bomb) {
   gameState.bombs = gameState.bombs.filter(b => b.id !== bomb.id);
-  
+
   const player = gameState.players[bomb.playerId];
   if (player) {
     player.bombs++; // Return bomb to player
-    
+
     // Emit updated player stats when bomb explodes
     io.emit('playerStatsUpdate', {
       playerId: bomb.playerId,
@@ -446,28 +463,28 @@ function explodeBomb(bomb) {
       }
     });
   }
-  
+
   const explosions = [];
   const directions = [
     [0, 0], // Center
     [0, -1], [0, 1], // Up, Down
     [-1, 0], [1, 0]  // Left, Right
   ];
-  
+
   directions.forEach(([dx, dy]) => {
     for (let i = 0; i <= (player ? player.flames : 1); i++) {
       const x = bomb.x + dx * i;
       const y = bomb.y + dy * i;
-      
+
       if (x < 0 || x >= 15 || y < 0 || y >= 13) break;
       if (gameState.map[y][x] === 'wall') break;
-      
+
       explosions.push({ x, y });
-      
+
       // Destroy blocks and maybe spawn powerup
       if (gameState.map[y][x] === 'block') {
         console.log('Block destroyed at:', x, y);
-        
+
         gameState.map[y][x] = 'empty';
         if (Math.random() < 0.3) {
           const powerupTypes = ['bombs', 'flames', 'speed'];
@@ -482,7 +499,7 @@ function explodeBomb(bomb) {
       }
     }
   });
-  
+
   // Check player damage
   const damagedPlayers = [];
   Object.keys(gameState.players).forEach(playerId => {
@@ -494,12 +511,12 @@ function explodeBomb(bomb) {
         lives: p.lives,
         alive: p.lives > 0
       });
-      
+
       if (p.lives <= 0) {
         p.alive = false;
         io.emit('playerDied', { playerId });
       }
-      
+
       // Emit real-time life update immediately
       io.emit('playerStatsUpdate', {
         playerId,
@@ -512,15 +529,15 @@ function explodeBomb(bomb) {
       });
     }
   });
-  
-  io.emit('bombExploded', { 
-    bombId: bomb.id, 
+
+  io.emit('bombExploded', {
+    bombId: bomb.id,
     explosions,
-    damagedPlayers 
+    damagedPlayers
   });
 
   io.emit('mapUpdate', { map: gameState.map });
-  
+
   // Send updated game state to ensure powerups are synced
   io.emit('gameStateUpdate', {
     players: gameState.players,

@@ -36,10 +36,6 @@ export function initGame() {
     updateUI();
   });
   
-  socket.on('joinError', (message) => {
-    alert(message);
-  });
-  
   socket.on('playerJoined', (data) => {
     const state = getGameState();
     setGameState({

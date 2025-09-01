@@ -57,6 +57,11 @@ function getKey(node) {
 }
 
 function updateProps(element, newProps, oldProps) {
+  // Skip if element is not an Element node (e.g., text node)
+  if (!(element instanceof Element)) {
+    return;
+  }
+
   const allProps = { ...oldProps, ...newProps };
   
   for (const key in allProps) {

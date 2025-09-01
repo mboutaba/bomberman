@@ -31,6 +31,7 @@ function NicknameScreen() {
   return h('div', { class: 'screen' },
     h('h1', {}, 'Bomberman DOM'),
     h('p', {}, 'Enter your nickname to join the battle!'),
+    state.error && h('p', { style: 'color: #ff4444;' }, state.error),
     h('form', { onsubmit: handleSubmit },
       h('input', {
         type: 'text',
