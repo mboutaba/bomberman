@@ -156,7 +156,7 @@ function GameScreen() {
             icon = '🔥';
             break;
           case 'speed':
-            icon = '⚡';
+            icon = '🚀';
             break;
         }
         return h('div', { key: `powerup-${index}`, class: `powerup ${powerup.type}`, style: `left: ${powerup.x * 32}px; top: ${powerup.y * 32}px;` }, icon);
@@ -201,7 +201,7 @@ function GameScreen() {
         h('div', {
           class: `stat stat-speed ${myPlayer._prevSpeed !== undefined && myPlayer._prevSpeed !== myPlayer.speed ? 'value-changed' : ''}`,
           onanimationend: () => { myPlayer._prevSpeed = myPlayer.speed; }
-        }, `⚡ Speed: ${myPlayer.speed ? myPlayer.speed.toFixed(1) : 1}`)
+        }, `🚀 Speed: ${myPlayer.speed ? myPlayer.speed.toFixed(1) : 1}`)
       ),
 
 
