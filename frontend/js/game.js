@@ -151,6 +151,18 @@ export function initGame() {
     updateUI();
   });
 
+
+  socket.on('playersUpdate', (data) => {
+  const state = getGameState();
+  setGameState({
+    ...state,
+    players: { ...data.players }
+  });
+  updateUI();
+});
+
+
+
   // Handle real-time player stats updates
   socket.on('playerStatsUpdate', (data) => {
     const state = getGameState();
