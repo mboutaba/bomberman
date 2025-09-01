@@ -195,22 +195,21 @@ io.on('connection', (socket) => {
     // Prevent joining if game started or during 10s countdown
     if (playerCount >= MAX_PLAYERS) {
       socket.emit('joinError', 'Game is full');
+      socket.disconnect(true);
       return;
     }
     // Prevent joining if game started or during 10s countdown
     if (gameState.gameStarted || gameState.gameTimer) {
       socket.emit('joinError', 'Game already started');
+      socket.disconnect(true);
       return;
     }
     // Check if nickname is already in use
     if (activeNicknames.has(nickname)) {
       socket.emit('joinError', 'Nickname is already taken');
-
+      socket.disconnect(true);
       return;
     }
-    setTimeout(() => {
-      socket.emit('clearJoinError');
-    }, 3000);
 
     playerCount++;
     gameState.players[socket.id] = {
@@ -379,9 +378,11 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
+    socket.disconnect(true);
     if (gameState.players[socket.id]) {
       // Remove nickname from active nicknames
       activeNicknames.delete(gameState.players[socket.id].nickname);
+      socket.disconnect(true);
       // If game is started, just mark as dead
       if (gameState.gameStarted) {
         gameState.players[socket.id].alive = false;
