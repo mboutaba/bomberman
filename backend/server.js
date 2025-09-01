@@ -165,7 +165,7 @@ function startGame() {
     setTimeout(resetGame, 5000);
     return;
   }
-  
+
   gameState.gameStarted = true;
   gameState.map = initializeMap();
 
