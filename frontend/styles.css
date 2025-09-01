@@ -125,6 +125,36 @@ body {
     animation: bombPulse 0.5s infinite alternate;
 }
 
+/* Powerup styles */
+.powerup {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  border-radius: 50%;
+  position: absolute;
+  margin: 2px;
+  z-index: 6;
+  background: #4caf50; /* green, similar to grass */
+  box-shadow: 0 0 8px 2px rgba(0,0,0,0.15);
+  border: 2px solid #fff;
+  transition: transform 0.1s;
+}
+.powerup.bombs {
+  border-color: #222;
+  background: #fffbe6;
+}
+.powerup.flames {
+  border-color: #ff6600;
+  background: #ffe5d0;
+}
+.powerup.speed {
+  border-color: #00c3ff;
+  background: #e0f7ff;
+}
+
 @keyframes bombPulse {
     from {
         transform: scale(1);
