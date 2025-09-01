@@ -29,6 +29,6 @@ export function GameScreen({ gameState, chatMessages, onSendMessage }) {
     }
     return FacileJS.createElement('div', { class: 'game-container' },
         PlayerStatus({ players }),
-        BoardRendererComponent({ map })
+        BoardRendererComponent({ map })   
     );
 }
