@@ -193,18 +193,20 @@ body {
   display: flex;
   flex-direction: column;
   height: 180px;
-  max-height: 180px;
+  overflow: hidden;
 }
 .chat-messages {
-  flex: 1 1 0;
+  flex: 1;
   overflow-y: auto;
   margin-bottom: 8px;
   font-size: 0.98em;
 }
 .message {
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   word-break: break-word;
+  color: #e0e0e0;
 }
+
 .chat-input {
   display: flex;
   gap: 6px;
@@ -238,7 +240,21 @@ body {
   margin: 2px 0;
   font-size: 0.98em;
 }
-
+.game-container {
+    flex-direction: row;
+    align-items: center;
+    gap: 18px;
+  }
+  .sidebar {
+    width: 95vw;
+    max-width: 480px;
+    min-width: 0;
+    max-height: none;
+    margin: 0 auto;
+  }
+  .game-board {
+    margin: 0 auto;
+  }
 /* Responsive design */
 @media (max-width: 900px) {
   .game-container {
