@@ -385,6 +385,7 @@ io.on('connection', (socket) => {
       // If game is started, just mark as dead
       if (gameState.gameStarted) {
         gameState.players[socket.id].alive = false;
+        broadcastPlayersUpdate();
       } else {
         // Only remove from players if game hasn't started
         delete gameState.players[socket.id];
@@ -429,6 +430,11 @@ io.on('connection', (socket) => {
     }
   });
 });
+
+
+function broadcastPlayersUpdate() {
+  io.emit('playersUpdate', { players: gameState.players });
+}
 
 
 function applyPowerup(player, type) {
@@ -515,6 +521,7 @@ function explodeBomb(bomb) {
       if (p.lives <= 0) {
         p.alive = false;
         io.emit('playerDied', { playerId });
+        broadcastPlayersUpdate();
       }
 
       // Emit real-time life update immediately
